@@ -1,102 +1,145 @@
-# TailAdmin Pro - React.js (v2.0)
+# Kafkot Reserve - Frontend Application
 
-[TailAdmin](https://tailadmin.com) is a modern, responsive, and customizable admin dashboard template built using Tailwind CSS and React.js. It is designed to help developers build beautiful and functional dashboards quickly and easily.
+Aplikasi frontend untuk sistem reservasi dan pemesanan cafe Kafkot, dibangun dengan React 19, TypeScript, dan TailwindCSS 4.
 
-## Quick Links
-
-- [✨ Visit Website](https://tailadmin.com)
-- [📄 Documentation](https://tailadmin.com/docs)
-- [⬇️ Download](https://tailadmin.com/download)
-- [🌐 Live Site](https://react-demo.tailadmin.com)
-
-## Installation
+## 🚀 Quick Start
 
 ### Prerequisites
+- Node.js (v18 atau lebih tinggi)
+- npm atau yarn
 
-To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
+### Installation
 
-- Node.js 18.x or later (recommended to use Node.js 20.x or later)
+1. Clone repository ini
+2. Install dependencies:
+```bash
+npm install
+```
 
-### Getting Started
+3. Copy file `.env.example` menjadi `.env`:
+```bash
+copy .env.example .env
+```
 
-1. Install dependencies:
+4. Jalankan development server:
+```bash
+npm run dev
+```
 
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-   > Use the `--legacy-peer-deps` flag if you encounter peer-deps error during installation.
-   
-2. Start the development server:
+5. Buka browser di `http://localhost:5173`
 
-   ```bash
-   npm start
-   # or
-   yarn start
-   ```
+## 📁 Struktur Proyek
 
-   Runs the app in the development mode.\
-   Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```
+src/
+├── components/       # Reusable components
+│   ├── common/      # Common components (LoadingSpinner, ProtectedRoute)
+│   └── ui/          # UI components dari template (Button, Card, dll)
+├── context/         # React Context (AuthContext, CartContext)
+├── data/            # Mock data
+├── layout/          # Layout components (PublicLayout, AppLayout)
+├── pages/           # Page components
+│   ├── Public/      # Customer-facing pages
+│   └── Dashboard/   # Admin pages (coming soon)
+├── services/        # API services
+├── types/           # TypeScript types &interfaces
+└── utils/           # Utility functions (validators, formatters)
+```
 
-## Changelog
+## 🎯 Fitur yang Sudah Diimplementasikan
 
-### Version 2.1.1 - [March 25, 2025]
+### Customer Pages (Public)
+- ✅ **Landing Page** - Hero section dengan informasi cafe
+- ✅ **Menu Page** - Browse menu dengan filter kategori dan search
+- ✅ **Reservation Page** - Form reservasi dengan pemilihan meja
+- ✅ **Payment Page** - Upload bukti pembayaran
+- ✅ **Order Status Page** - Track status reservasi
 
-- Upgraded to React 19
-- Included overrides for packages to prevent peer dependency errors.
-- Migrated from react-flatpickr to flatpickr package for React 19 support
+### Core Features
+- ✅ **Shopping Cart** - Persistent cart dengan localStorage
+- ✅ **Table Selection** - Menampilkan list meja available ber
 
-### Version 2.1.0 - [March 10, 2025]
+dasarkan kapasitas dan tipe
+- ✅ **Form Validation** - Client-side validation lengkap
+- ✅ **Mock Data** - 15 menu items dan 14 meja untuk testing
 
-#### Update Overview
+## 🔧 Tech Stack
 
-- Added new dashboard design for saas product.
-- New Metrics card
-- Product performance tab with charts
+- **React 19** - UI library
+- **TypeScript 5.7** - Type safety
+- **React Router v7** - Routing
+- **TailwindCSS 4** - Styling
+- **Vite 6** - Build tool
 
-### Version 2.0.1 - [February 27, 2025]
+## 📝 Alur Aplikasi
 
-#### Update Overview
+### Customer Flow:
+1. Landing Page → Lihat informasi cafe
+2. Menu Page → Pilih menu dan tambahkan ke cart
+3. Reservation Page → Isi data diri & pilih tanggal/waktu
+4. Pilih tipe meja (Indoor/Semi Outdoor/Outdoor)
+5. Sistem menampilkan list meja available
+6. Pilih meja dari list
+7. Review dan konfirmasi reservasi
+8. Payment Page → Upload bukti transfer
+9. Order Status Page → Track status verifikasi
 
-- Upgraded to Tailwind CSS v4 for better performance and efficiency.
-- Updated class usage to match the latest syntax and features.
-- Replaced deprecated class and optimized styles.
+### Admin Flow (Coming Soon):
+1. Login admin
+2. Dashboard dengan statistics
+3. Manage menu (CRUD)
+4. Manage tables (CRUD)
+5. Verify payment proofs
+6. Approve/reject reservations
 
-#### Next Steps
+## 🎨 Design Features
 
-- Run npm install or yarn install to update dependencies.
-- Check for any style changes or compatibility issues.
-- Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
-- This update keeps the project up to date with the latest Tailwind improvements. 🚀
+- ✅ Modern gradient backgrounds
+- ✅ Responsive design (mobile, tablet, desktop)
+- ✅ Dark mode support
+- ✅ Smooth transitions & animations
+- ✅ Accessible UI components
 
-### Version 2.0.0 - [February 2025]
+## 🧪 Testing
 
-A major update with comprehensive redesign and modern React patterns implementation.
+Untuk saat ini menggunakan mock data. Flow yang bisa ditest:
 
-#### Major Improvements
+1. Tambah menu ke cart → Total price akan update
+2. Form validation → Coba submit form kosong
+3. Table availability → Pilih tipe meja dan lihat available tables
+4. Payment upload → Drag & drop atau click untuk upload
+5. Status tracking → Lihat timeline status reservasi
 
-- Complete UI redesign with modern React patterns
-- New features: collapsible sidebar, chat, and calendar
-- Improved performance and accessibility
-- Updated data visualization using ApexCharts
+## 📦 Build untuk Production
 
-#### Key Features
+```bash
+npm run build
+```
 
-- Redesigned dashboards (Ecommerce, Analytics, Marketing, CRM)
-- Enhanced navigation with React Router integration
-- Advanced tables with sorting and filtering
-- Calendar with drag-and-drop support
-- New UI components and improved existing ones
+Output akan ada di
 
-#### Breaking Changes
+ folder `dist/`.
 
-- Updated sidebar component API
-- Migrated charts to ApexCharts
-- Revised authentication system
+## 🔗 API Integration
 
-[Read more](https://tailadmin.com/docs/update-logs/react) on the changelog.
+Saat ini menggunakan mock data. Untuk integrasi dengan backend:
 
-## License
+1. Update `VITE_API_BASE_URL` di file `.env`
+2. Services di `src/services/api.ts` sudah siap untuk API calls
+3. Replace mock data responses dengan actual API calls
 
-Refer to our [LICENSE](https://tailadmin.com/license) page for more information.
+## 👨‍💻 Development Notes
+
+- Semua types ada di `src/types/index.ts`
+- API endpoints ada di `src/services/api.ts`
+- Validators ada di `src/utils/validators.ts`
+- Formatters ada di `src/utils/formatters.ts`
+- Mock data ada di `src/data/mockData.ts`
+
+## 📄 License
+
+Private project untuk Tugas Akhir.
+
+## 👤 Author
+
+Telkom University Student
