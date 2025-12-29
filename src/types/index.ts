@@ -30,7 +30,7 @@ export enum MenuCategory {
 // Menu Types
 export interface Menu {
   id: string;
-  name: string;
+  menu_name: string;
   category: MenuCategory;
   description: string;
   price: number;
@@ -44,9 +44,14 @@ export interface Menu {
 export interface Table {
   id: string;
   table_number: string;
+  table_type_id: string;
   capacity: number;
-  type: TableType;
-  is_available: boolean;
+  status: string;
+  table_type?: {
+    id: string;
+    type_name: string;
+    description?: string;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -74,6 +79,7 @@ export interface PaymentProof {
 // Reservation Types
 export interface Reservation {
   id: string;
+  booking_code: string;
   // Customer Info
   customer_name: string;
   customer_email: string;
@@ -83,7 +89,7 @@ export interface Reservation {
   reservation_date: string;
   reservation_time: string;
   number_of_people: number;
-  table_type: TableType;
+  duration_hours: number;
   special_notes?: string;
   
   // Table Assignment
@@ -91,12 +97,16 @@ export interface Reservation {
   table?: Table;
   
   // Order
-  order_items: OrderItem[];
+  reservation_items?: OrderItem[];
   total_amount: number;
   
   // Payment
-  payment_proof?: PaymentProof;
-  payment_status: PaymentStatus;
+  payment?: {
+    id: string;
+    payment_proof_url?: string;
+    payment_status: string;
+    verified_at?: string;
+  };
   
   // Status
   status: ReservationStatus;
@@ -154,13 +164,17 @@ export interface ReservationFormData {
   reservation_date: string;
   reservation_time: string;
   number_of_people: number;
-  table_type: TableType;
+  duration_hours: number;
+  table_id: string;
   special_notes?: string;
-  order_items: OrderItem[];
+  order_items: {
+    menu_id: string;
+    quantity: number;
+  }[];
 }
 
 export interface MenuFormData {
-  name: string;
+  menu_name: string;
   category: MenuCategory;
   description: string;
   price: number;
@@ -169,9 +183,10 @@ export interface MenuFormData {
 }
 
 export interface TableFormData {
+  table_type_id: string;
   table_number: string;
   capacity: number;
-  type: TableType;
+  status?: string;
 }
 
 // Cart Types
@@ -191,7 +206,8 @@ export interface TableAvailabilityRequest {
   reservation_date: string;
   reservation_time: string;
   number_of_people: number;
-  table_type: TableType;
+  duration_hours: number;
+  table_type_id: string;
 }
 
 export interface TableAvailabilityResponse {

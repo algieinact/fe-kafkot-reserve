@@ -13,6 +13,8 @@ import {
 import { formatCurrency } from "../../utils/formatters";
 import { Card, CardTitle } from "../../components/ui/card";
 import Button from "../../components/ui/button/Button";
+import DatePicker from "../../components/form/date-picker";
+import { reservationStorage } from "../../services/localStorage";
 
 const ReservationPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +36,9 @@ const ReservationPage: React.FC = () => {
   const [availableTables, setAvailableTables] = useState<Table[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [showTableSelection, setShowTableSelection] = useState(false);
+  const [startTime, setStartTime] = useState("");
+  const [duration, setDuration] = useState(2);
+  const [endTime, setEndTime] = useState("");
 
   // Check if cart is empty
   useEffect(() => {
@@ -42,6 +47,40 @@ const ReservationPage: React.FC = () => {
       navigate("/menu");
     }
   }, [cartItems, navigate]);
+
+  // Generate time slots (09:00 - 22:00, every 30 minutes)
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour < 22; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+    }
+    return slots;
+  };
+
+  // Calculate end time
+  const calculateEndTime = (start: string, hours: number) => {
+    if (!start) return "";
+    const [h, m] = start.split(':').map(Number);
+    const endHour = h + hours;
+    const endMinute = m;
+    return `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+  };
+
+  // Get max duration based on start time
+  const getMaxDuration = (startTime: string) => {
+    if (!startTime) return 5;
+    const [h] = startTime.split(':').map(Number);
+    const closingHour = 22;
+    return Math.min(5, closingHour - h);
+  };
+
+  // Update end time when start time or duration changes
+  useEffect(() => {
+    if (startTime && duration) {
+      setEndTime(calculateEndTime(startTime, duration));
+    }
+  }, [startTime, duration]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -104,6 +143,11 @@ const ReservationPage: React.FC = () => {
     if (!validateForm()) {
       return;
     }
+    
+    if (!startTime) {
+      alert("Pilih jam mulai terlebih dahulu");
+      return;
+    }
 
     // Filter tables by type and capacity
     const filtered = mockTables.filter(
@@ -141,9 +185,33 @@ const ReservationPage: React.FC = () => {
 
     const reservationData = {
       ...formData,
+      reservation_time: startTime,
+      duration_hours: duration,
       order_items: orderItems,
       table_id: selectedTable.id,
     };
+
+    // Save to localStorage
+    reservationStorage.add({
+      bookingCode: `TEMP-${Date.now()}`,
+      customerName: formData.customer_name,
+      customerEmail: formData.customer_email,
+      customerPhone: formData.customer_phone,
+      reservationDate: formData.reservation_date,
+      reservationTime: startTime,
+      durationHours: duration,
+      numberOfPeople: formData.number_of_people,
+      tableNumber: selectedTable.table_number,
+      tableType: formData.table_type,
+      totalAmount: totalPrice,
+      status: "pending",
+      orderItems: cartItems.map(item => ({
+        menuName: item.menu.menu_name,
+        quantity: item.quantity,
+        price: item.menu.price,
+      })),
+      createdAt: new Date().toISOString(),
+    });
 
     // Store in sessionStorage for payment page
     sessionStorage.setItem("pending_reservation", JSON.stringify(reservationData));
@@ -234,18 +302,19 @@ const ReservationPage: React.FC = () => {
               <div className="mt-4 space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Tanggal <span className="text-error-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="reservation_date"
-                      value={formData.reservation_date}
-                      onChange={handleInputChange}
-                      min={new Date().toISOString().split("T")[0]}
-                      className={`w-full rounded-lg border ${
-                        errors.reservation_date ? "border-error-500" : "border-gray-200"
-                      } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
+                    <DatePicker
+                      id="reservation_date"
+                      label="Tanggal *"
+                      placeholder="Pilih tanggal reservasi"
+                      defaultDate={formData.reservation_date || undefined}
+                      onChange={(selectedDates) => {
+                        if (selectedDates && selectedDates.length > 0) {
+                          const date = selectedDates[0];
+                          const formattedDate = date.toISOString().split('T')[0];
+                          setFormData((prev) => ({ ...prev, reservation_date: formattedDate }));
+                          setErrors((prev) => ({ ...prev, reservation_date: "" }));
+                        }
+                      }}
                     />
                     {errors.reservation_date && (
                       <p className="mt-1 text-sm text-error-500">{errors.reservation_date}</p>
@@ -288,6 +357,61 @@ const ReservationPage: React.FC = () => {
                   />
                   {errors.number_of_people && (
                     <p className="mt-1 text-sm text-error-500">{errors.number_of_people}</p>
+                  )}
+                </div>
+
+                {/* Start Time */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Jam Mulai <span className="text-error-500">*</span>
+                  </label>
+                  <select
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white"
+                    required
+                  >
+                    <option value="">Pilih Jam Mulai</option>
+                    {generateTimeSlots().map(slot => (
+                      <option key={slot} value={slot}>{slot}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Cafe buka: 09:00 - 22:00
+                  </p>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Durasi <span className="text-error-500">*</span>
+                  </label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(Number(e.target.value))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white"
+                    required
+                    disabled={!startTime}
+                  >
+                    {[1, 2, 3, 4, 5].map(hours => {
+                      const maxDuration = getMaxDuration(startTime);
+                      if (hours > maxDuration) return null;
+                      return (
+                        <option key={hours} value={hours}>
+                          {hours} Jam
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {startTime && endTime && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Reservasi selesai pada: <span className="font-semibold">{endTime}</span>
+                    </p>
+                  )}
+                  {!startTime && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Pilih jam mulai terlebih dahulu
+                    </p>
                   )}
                 </div>
 
@@ -438,7 +562,7 @@ const ReservationPage: React.FC = () => {
                 {cartItems.map((item) => (
                   <div key={item.menu.id} className="flex items-start justify-between text-sm">
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900 dark:text-white">{item.menu.name}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{item.menu.menu_name}</div>
                       <div className="text-gray-600 dark:text-gray-400">x{item.quantity}</div>
                     </div>
                     <div className="font-medium text-gray-900 dark:text-white">

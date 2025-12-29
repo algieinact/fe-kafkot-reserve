@@ -27,10 +27,23 @@ const PublicLayout: React.FC = () => {
                 Beranda
               </Link>
               <Link
-                to="/menu"
-                className="text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400"
+                to="/history"
+                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400"
               >
-                Menu
+                <svg 
+                  className="h-5 w-5" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+                  />
+                </svg>
+                Riwayat
               </Link>
               <Link
                 to="/reservation"
@@ -66,7 +79,7 @@ const PublicLayout: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-dark">
+      <footer className="border-t mt-8 border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-dark">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* About */}

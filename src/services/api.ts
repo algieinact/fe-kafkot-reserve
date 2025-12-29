@@ -13,7 +13,6 @@ import {
   TableAvailabilityRequest,
   TableAvailabilityResponse,
   DashboardStats,
-  PaymentStatus,
   ReservationStatus,
 } from "../types";
 
@@ -51,10 +50,22 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     };
   }
 
-  const data = await response.json();
+  const jsonResponse = await response.json();
+  
+  // If the backend already returns {success: true, data: ...}, unwrap it
+  if (jsonResponse.success !== undefined && jsonResponse.data !== undefined) {
+    return {
+      success: jsonResponse.success,
+      data: jsonResponse.data,
+      message: jsonResponse.message,
+      error: jsonResponse.error,
+    };
+  }
+  
+  // Otherwise, wrap the response
   return {
     success: true,
-    data,
+    data: jsonResponse,
   };
 }
 
@@ -118,7 +129,7 @@ export const menuApi = {
 
   createMenu: async (data: MenuFormData): Promise<ApiResponse<Menu>> => {
     const formData = new FormData();
-    formData.append("name", data.name);
+    formData.append("menu_name", data.menu_name);
     formData.append("category", data.category);
     formData.append("description", data.description);
     formData.append("price", data.price.toString());
@@ -127,7 +138,7 @@ export const menuApi = {
       formData.append("image", data.image);
     }
 
-    const response = await fetch(`${API_BASE_URL}/menus`, {
+    const response = await fetch(`${API_BASE_URL}/admin/menus`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
@@ -139,7 +150,7 @@ export const menuApi = {
 
   updateMenu: async (id: string, data: MenuFormData): Promise<ApiResponse<Menu>> => {
     const formData = new FormData();
-    formData.append("name", data.name);
+    formData.append("menu_name", data.menu_name);
     formData.append("category", data.category);
     formData.append("description", data.description);
     formData.append("price", data.price.toString());
@@ -148,7 +159,7 @@ export const menuApi = {
       formData.append("image", data.image);
     }
 
-    const response = await fetch(`${API_BASE_URL}/menus/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/menus/${id}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
@@ -159,7 +170,7 @@ export const menuApi = {
   },
 
   deleteMenu: async (id: string): Promise<ApiResponse<void>> => {
-    const response = await fetch(`${API_BASE_URL}/menus/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/menus/${id}`, {
       method: "DELETE",
       headers: createHeaders(true),
     });
@@ -194,7 +205,7 @@ export const tableApi = {
   },
 
   createTable: async (data: TableFormData): Promise<ApiResponse<Table>> => {
-    const response = await fetch(`${API_BASE_URL}/tables`, {
+    const response = await fetch(`${API_BASE_URL}/admin/tables`, {
       method: "POST",
       headers: createHeaders(true),
       body: JSON.stringify(data),
@@ -203,7 +214,7 @@ export const tableApi = {
   },
 
   updateTable: async (id: string, data: TableFormData): Promise<ApiResponse<Table>> => {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/tables/${id}`, {
       method: "PUT",
       headers: createHeaders(true),
       body: JSON.stringify(data),
@@ -212,7 +223,7 @@ export const tableApi = {
   },
 
   deleteTable: async (id: string): Promise<ApiResponse<void>> => {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/tables/${id}`, {
       method: "DELETE",
       headers: createHeaders(true),
     });
@@ -248,7 +259,7 @@ export const reservationApi = {
     if (params?.page) queryParams.append("page", params.page.toString());
     if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
 
-    const response = await fetch(`${API_BASE_URL}/reservations?${queryParams}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/reservations?${queryParams}`, {
       headers: createHeaders(true),
     });
     return handleResponse<PaginatedResponse<Reservation>>(response);
@@ -277,7 +288,7 @@ export const reservationApi = {
     const formData = new FormData();
     formData.append("payment_proof", file);
 
-    const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/payment-proof`, {
+    const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/upload-payment`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
@@ -290,11 +301,10 @@ export const reservationApi = {
   verifyPayment: async (
     reservationId: string,
     data: {
-      status: "verified" | "rejected";
       rejection_reason?: string;
     }
   ): Promise<ApiResponse<Reservation>> => {
-    const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/verify-payment`, {
+    const response = await fetch(`${API_BASE_URL}/admin/reservations/${reservationId}/verify`, {
       method: "POST",
       headers: createHeaders(true),
       body: JSON.stringify(data),
@@ -302,22 +312,32 @@ export const reservationApi = {
     return handleResponse<Reservation>(response);
   },
 
-  updateReservationStatus: async (
+  rejectPayment: async (
     reservationId: string,
-    status: ReservationStatus
+    data: {
+      rejection_reason: string;
+    }
   ): Promise<ApiResponse<Reservation>> => {
-    const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/status`, {
+    const response = await fetch(`${API_BASE_URL}/admin/reservations/${reservationId}/reject`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<Reservation>(response);
+  },
+
+  completeReservation: async (reservationId: string): Promise<ApiResponse<Reservation>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/reservations/${reservationId}/complete`, {
       method: "PATCH",
       headers: createHeaders(true),
-      body: JSON.stringify({ status }),
     });
     return handleResponse<Reservation>(response);
   },
 
   cancelReservation: async (reservationId: string): Promise<ApiResponse<Reservation>> => {
-    const response = await fetch(`${API_BASE_URL}/reservations/${reservationId}/cancel`, {
-      method: "POST",
-      headers: createHeaders(),
+    const response = await fetch(`${API_BASE_URL}/admin/reservations/${reservationId}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
     });
     return handleResponse<Reservation>(response);
   },
@@ -329,14 +349,14 @@ export const reservationApi = {
 
 export const dashboardApi = {
   getStats: async (): Promise<ApiResponse<DashboardStats>> => {
-    const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
+    const response = await fetch(`${API_BASE_URL}/admin/dashboard/stats`, {
       headers: createHeaders(true),
     });
     return handleResponse<DashboardStats>(response);
   },
 
   getReservationChart: async (days = 7): Promise<ApiResponse<any>> => {
-    const response = await fetch(`${API_BASE_URL}/dashboard/reservation-chart?days=${days}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/dashboard/reservation-chart?days=${days}`, {
       headers: createHeaders(true),
     });
     return handleResponse<any>(response);

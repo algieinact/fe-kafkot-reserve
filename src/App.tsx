@@ -9,11 +9,11 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 
 // Public Pages
-import LandingPage from "./pages/Public/LandingPage";
 import MenuPage from "./pages/Public/MenuPage";
 import ReservationPage from "./pages/Public/ReservationPage";
 import PaymentPage from "./pages/Public/PaymentPage";
 import OrderStatusPage from "./pages/Public/OrderStatusPage";
+import HistoryPage from "./pages/Public/HistoryPage";
 
 export default function App() {
   return (
@@ -24,11 +24,11 @@ export default function App() {
           <Routes>
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
-              <Route index path="/" element={<LandingPage />} />
-              <Route path="/menu" element={<MenuPage />} />
+              <Route index path="/" element={<MenuPage />} />
               <Route path="/reservation" element={<ReservationPage />} />
               <Route path="/payment/:orderId" element={<PaymentPage />} />
               <Route path="/order-status/:orderId" element={<OrderStatusPage />} />
+              <Route path="/history" element={<HistoryPage />} />
             </Route>
 
             {/* Admin Auth */}

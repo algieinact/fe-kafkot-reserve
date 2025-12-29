@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate } from "react-router";
 import { useCart } from "../../context/CartContext";
 import { OrderItem } from "../../types";
 import { formatCurrency, formatDate } from "../../utils/formatters";

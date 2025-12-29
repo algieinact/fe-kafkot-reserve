@@ -2,6 +2,38 @@
 
 @import "tailwindcss";
 
+/* Force light mode */
+:root {
+  color-scheme: light only;
+}
+
+html {
+  background: white;
+  color: #1f2937;
+}
+
+/* Override dark mode classes */
+.dark\:bg-gray-900,
+.dark\:bg-gray-800,
+.dark\:bg-gray-dark {
+  background: white !important;
+}
+
+.dark\:bg-white\/\[0\.03\] {
+  background: white !important;
+}
+
+.dark\:text-white,
+.dark\:text-gray-300,
+.dark\:text-gray-400 {
+  color: #1f2937 !important;
+}
+
+.dark\:border-gray-800,
+.dark\:border-gray-700 {
+  border-color: #e5e7eb !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @keyframes gradient {
@@ -61,18 +93,32 @@
   --color-white: #ffffff;
   --color-black: #101828;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  --color-brand-25: #f0f7f7;
+  --color-brand-50: #e6f2f3;
+  --color-brand-100: #cce5e6;
+  --color-brand-200: #99ccd0;
+  --color-brand-300: #66b2b9;
+  --color-brand-400: #3399a3;
+  --color-brand-500: #1F5963;
+  --color-brand-600: #19484f;
+  --color-brand-700: #13363b;
+  --color-brand-800: #0c2428;
+  --color-brand-900: #061214;
+  --color-brand-950: #030a0b;
+  
+  --color-accent-25: #fffaf0;
+  --color-accent-50: #fff5e6;
+  --color-accent-100: #ffeecc;
+  --color-accent-200: #ffdd99;
+  --color-accent-300: #ffcc66;
+  --color-accent-400: #ffbb33;
+  --color-accent-500: #f09902;
+  --color-accent-600: #cc8502;
+  --color-accent-700: #996401;
+  --color-accent-800: #664301;
+  --color-accent-900: #332101;
+  --color-accent-950: #1a1101;
+
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;

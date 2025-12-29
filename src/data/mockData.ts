@@ -5,7 +5,7 @@ export const mockMenus: Menu[] = [
   // Coffee
   {
     id: "1",
-    name: "Espresso",
+    menu_name: "Espresso",
     category: MenuCategory.DRINK,
     description: "Classic Italian espresso dengan rasa bold dan rich",
     price: 25000,
@@ -16,7 +16,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "2",
-    name: "Cappuccino",
+    menu_name: "Cappuccino",
     category: MenuCategory.DRINK,
     description: "Espresso dengan steamed milk dan foam yang creamy",
     price: 30000,
@@ -27,7 +27,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "3",
-    name: "Caffe Latte",
+    menu_name: "Caffe Latte",
     category: MenuCategory.DRINK,
     description: "Espresso dengan lebih banyak steamed milk, perfect untuk pemula",
     price: 32000,
@@ -38,7 +38,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "4",
-    name: "Americano",
+    menu_name: "Americano",
     category: MenuCategory.DRINK,
     description: "Espresso dengan hot water, strong dan smooth",
     price: 28000,
@@ -49,11 +49,11 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "5",
-    name: "Mocha",
+    menu_name: "Mocha",
     category: MenuCategory.DRINK,
     description: "Kombinasi espresso, chocolate, dan steamed milk",
     price: 35000,
-    image_url: "https://images.unsplash.com/photo-1578374173705-8fdbca1e5b31?w=400&h=300&fit=crop",
+    image_url: "https://plus.unsplash.com/premium_photo-1671559021617-63260def0504?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     is_available: true,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
@@ -62,18 +62,18 @@ export const mockMenus: Menu[] = [
   // Non-Coffee Drinks
   {
     id: "6",
-    name: "Matcha Latte",
+    menu_name: "Matcha Latte",
     category: MenuCategory.DRINK,
     description: "Japanese matcha premium dengan susu hangat",
     price: 33000,
-    image_url: "https://images.unsplash.com/photo-1536013416457-31211d86e353?w=400&h=300&fit=crop",
+    image_url: "https://images.unsplash.com/photo-1717603545758-88cc454db69b?w=400&h=300&fit=crop",
     is_available: true,
     created_at: "2024-01-01T00:00:00Z",
     updated_at: "2024-01-01T00:00:00Z",
   },
   {
     id: "7",
-    name: "Chocolate",
+    menu_name: "Chocolate",
     category: MenuCategory.DRINK,
     description: "Rich hot chocolate dengan whipped cream",
     price: 30000,
@@ -84,7 +84,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "8",
-    name: "Lemon Tea",
+    menu_name: "Lemon Tea",
     category: MenuCategory.DRINK,
     description: "Teh segar dengan perasan lemon alami",
     price: 22000,
@@ -97,7 +97,7 @@ export const mockMenus: Menu[] = [
   // Food
   {
     id: "9",
-    name: "Croissant",
+    menu_name: "Croissant",
     category: MenuCategory.FOOD,
     description: "French butter croissant yang flaky dan buttery",
     price: 28000,
@@ -108,7 +108,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "10",
-    name: "Sandwich Club",
+    menu_name: "Sandwich Club",
     category: MenuCategory.FOOD,
     description: "Triple decker sandwich dengan chicken, bacon, lettuce, dan tomato",
     price: 45000,
@@ -119,7 +119,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "11",
-    name: "Pasta Carbonara",
+    menu_name: "Pasta Carbonara",
     category: MenuCategory.FOOD,
     description: "Creamy carbonara dengan bacon dan parmesan",
     price: 52000,
@@ -130,7 +130,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "12",
-    name: "Nasi Goreng Special",
+    menu_name: "Nasi Goreng Special",
     category: MenuCategory.FOOD,
     description: "Nasi goreng dengan telur, ayam, dan kerupuk",
     price: 38000,
@@ -143,7 +143,7 @@ export const mockMenus: Menu[] = [
   // Desserts
   {
     id: "13",
-    name: "Tiramisu",
+    menu_name: "Tiramisu",
     category: MenuCategory.DESSERT,
     description: "Italian dessert dengan coffee-soaked ladyfingers dan mascarpone",
     price: 42000,
@@ -154,7 +154,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "14",
-    name: "Chocolate Brownie",
+    menu_name: "Chocolate Brownie",
     category: MenuCategory.DESSERT,
     description: "Rich chocolate brownie dengan vanilla ice cream",
     price: 38000,
@@ -165,7 +165,7 @@ export const mockMenus: Menu[] = [
   },
   {
     id: "15",
-    name: "Cheesecake",
+    menu_name: "Cheesecake",
     category: MenuCategory.DESSERT,
     description: "Creamy New York style cheesecake dengan berry compote",
     price: 40000,
@@ -198,3 +198,4 @@ export const mockTables: Table[] = [
   { id: "T13", table_number: "13", capacity: 4, type: TableType.OUTDOOR, is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
   { id: "T14", table_number: "14", capacity: 6, type: TableType.OUTDOOR, is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
 ];
+
