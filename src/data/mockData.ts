@@ -179,23 +179,135 @@ export const mockMenus: Menu[] = [
 // Mock Table Data
 export const mockTables: Table[] = [
   // Indoor Tables
-  { id: 1, table_number: "1", capacity: 2, table_type: "indoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 2, table_number: "2", capacity: 2, table_type: "indoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 3, table_number: "3", capacity: 4, table_type: "indoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 4, table_number: "4", capacity: 4, table_type: "indoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 5, table_number: "5", capacity: 6, table_type: "indoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 6, table_number: "6", capacity: 8, table_type: "indoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
+  { 
+    id: 1, 
+    table_number: "1", 
+    capacity: 2, 
+    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 2, 
+    table_number: "2", 
+    capacity: 2, 
+    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 3, 
+    table_number: "3", 
+    capacity: 4, 
+    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 4, 
+    table_number: "4", 
+    capacity: 4, 
+    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 5, 
+    table_number: "5", 
+    capacity: 6, 
+    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 6, 
+    table_number: "6", 
+    capacity: 8, 
+    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
 
   // Semi-Outdoor Tables
-  { id: 7, table_number: "7", capacity: 2, table_type: "semi_outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 8, table_number: "8", capacity: 4, table_type: "semi_outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 9, table_number: "9", capacity: 4, table_type: "semi_outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 10, table_number: "10", capacity: 6, table_type: "semi_outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
+  { 
+    id: 7, 
+    table_number: "7", 
+    capacity: 2, 
+    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 8, 
+    table_number: "8", 
+    capacity: 4, 
+    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 9, 
+    table_number: "9", 
+    capacity: 4, 
+    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 10, 
+    table_number: "10", 
+    capacity: 6, 
+    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
 
   // Outdoor Tables
-  { id: 11, table_number: "11", capacity: 2, table_type: "outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 12, table_number: "12", capacity: 4, table_type: "outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 13, table_number: "13", capacity: 4, table_type: "outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
-  { id: 14, table_number: "14", capacity: 6, table_type: "outdoor", is_available: true, created_at: "2024-01-01", updated_at: "2024-01-01" },
+  { 
+    id: 11, 
+    table_number: "11", 
+    capacity: 2, 
+    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 12, 
+    table_number: "12", 
+    capacity: 4, 
+    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 13, 
+    table_number: "13", 
+    capacity: 4, 
+    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
+  { 
+    id: 14, 
+    table_number: "14", 
+    capacity: 6, 
+    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
+    created_at: "2024-01-01", 
+    updated_at: "2024-01-01",
+    status: "available"
+  },
 ];
 

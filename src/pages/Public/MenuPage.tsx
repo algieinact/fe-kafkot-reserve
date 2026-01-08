@@ -152,9 +152,7 @@ const MenuPage: React.FC = () => {
     }
   };
 
-  const handleRemoveItem = (menuId: number) => {
-    removeItem(menuId);
-  };
+
 
   const getItemQuantity = (menuId: number) => {
     const item = cartItems.find((item) => item.menu.id === menuId);

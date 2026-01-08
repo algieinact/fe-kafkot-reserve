@@ -146,6 +146,7 @@ export interface ReservationFormData {
   duration_hours: number;
   table_id: number;
   special_notes?: string;
+  table_type?: string;
   order_items: {
     menu_id: number;
     quantity: number;

@@ -40,7 +40,7 @@ export default function ManageTable() {
                 setTableTypes(response.data);
                 // Set default type if available
                 if (response.data.length > 0) {
-                    setFormData(prev => ({ ...prev, table_type_id: response.data[0].id }));
+                    setFormData(prev => ({ ...prev, table_type_id: response.data?.[0].id || 1 }));
                 }
             }
         } catch (err) {

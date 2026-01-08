@@ -6,7 +6,7 @@ import {
   validateEmail,
   validatePhone,
   validateReservationDate,
-  validateReservationTime,
+
   validateNumberOfPeople,
 } from "../../utils/validators";
 import { formatCurrency } from "../../utils/formatters";
