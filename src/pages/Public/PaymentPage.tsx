@@ -96,7 +96,7 @@ const PaymentPage: React.FC = () => {
       formData.append('payment_proof', selectedFile);
 
       // Upload to backend
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'}/reservations/${reservationData.id}/upload-payment`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/reservations/${reservationData.id}/upload-payment`, {
         method: 'POST',
         body: formData,
       });
