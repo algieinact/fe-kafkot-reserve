@@ -245,7 +245,7 @@ export default function ManageTable() {
         return (
             <div className="space-y-5 sm:space-y-6">
                 <PageMeta
-                    title="Kelola Meja | Kafkot Reserve"
+                    title="Kelola Meja | Reservasi Ruang Dugamasa"
                     description="Kelola meja restoran dan ketersediaannya"
                 />
                 <PageBreadcrumb pageTitle="Kelola Meja" />
@@ -262,7 +262,7 @@ export default function ManageTable() {
     return (
         <>
             <PageMeta
-                title="Kelola Meja | Kafkot Reserve"
+                title="Kelola Meja | Reservasi Ruang Dugamasa"
                 description="Kelola meja restoran dan ketersediaannya"
             />
             <PageBreadcrumb pageTitle="Kelola Meja" />

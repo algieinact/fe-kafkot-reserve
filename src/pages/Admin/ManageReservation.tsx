@@ -312,7 +312,7 @@ export default function ManageReservation() {
     return (
         <>
             <PageMeta
-                title="Kelola Reservasi | Kafkot Reserve"
+                title="Kelola Reservasi | Reservasi Ruang Dugamasa"
                 description="Kelola reservasi dan verifikasi pembayaran"
             />
             <PageBreadcrumb pageTitle="Kelola Reservasi" />

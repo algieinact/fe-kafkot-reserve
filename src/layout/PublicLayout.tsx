@@ -11,10 +11,10 @@ const PublicLayout: React.FC = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500">
-                <span className="text-xl font-bold text-white">K</span>
+                <span className="text-xl font-bold text-white">R</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                Kafkot Reserve
+                Ruang Dugamasa
               </span>
             </Link>
 
@@ -45,12 +45,12 @@ const PublicLayout: React.FC = () => {
                 </svg>
                 Riwayat
               </Link>
-              <Link
+              {/* <Link
                 to="/reservation"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
               >
                 Reservasi Sekarang
-              </Link>
+              </Link> */}
             </nav>
 
             {/* Mobile Menu Button */}
@@ -162,7 +162,7 @@ const PublicLayout: React.FC = () => {
           {/* Copyright */}
           <div className="mt-8 border-t border-gray-200 pt-8 dark:border-gray-800">
             <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-              © {new Date().getFullYear()} Kafkot Reserve. All rights reserved.
+              © {new Date().getFullYear()} Ruang Dugamasa. All rights reserved.
             </p>
           </div>
         </div>

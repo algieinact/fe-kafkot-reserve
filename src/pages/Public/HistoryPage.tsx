@@ -296,7 +296,6 @@ const HistoryPage: React.FC = () => {
                 {/* Rejection Reason - Show only if status is rejected */}
                 {reservation.status === 'rejected' && reservation.rejection_reason && (
                   <div className="border-t border-gray-200 pt-4">
-                    <p className="mb-2 text-sm font-medium text-red-600">Alasan Penolakan</p>
                     <div className="rounded-lg bg-red-50 border border-red-200 p-4">
                       <p className="text-sm text-red-800">
                         {reservation.rejection_reason}

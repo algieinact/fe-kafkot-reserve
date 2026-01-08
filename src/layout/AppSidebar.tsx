@@ -144,7 +144,7 @@ const AppSidebar = () => {
                 alt="Logo"
                 className="w-8 h-8"
               />
-              <span className="ml-3 text-xl font-semibold">Kafkot Reserve</span>
+              <span className="ml-3 text-xl font-semibold">Ruang Dugamasa</span>
             </div>
           ) : (
             <img

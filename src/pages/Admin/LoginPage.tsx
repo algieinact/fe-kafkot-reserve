@@ -36,7 +36,7 @@ export default function LoginPage() {
     return (
         <>
             <PageMeta
-                title="Login | Kafkot Reserve - Restaurant Reservation System"
+                title="Login | Reservasi Ruang Dugamasa - Restaurant Reservation System"
                 description="Login untuk mengakses dashboard dan mengelola reservasi, menu, dan meja restoran"
             />
             <AuthLayout>

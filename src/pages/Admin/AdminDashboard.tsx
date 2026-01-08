@@ -68,7 +68,7 @@ export default function AdminDashboard() {
     return (
         <>
             <PageMeta
-                title="Dashboard Admin | Kafkot Reserve"
+                title="Dashboard Admin | Reservasi Ruang Dugamasa"
                 description="Dashboard admin untuk mengelola reservasi restoran"
             />
 

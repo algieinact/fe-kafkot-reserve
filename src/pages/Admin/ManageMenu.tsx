@@ -241,7 +241,7 @@ export default function ManageMenu() {
         return (
             <div className="space-y-5 sm:space-y-6">
                 <PageMeta
-                    title="Kelola Menu | Kafkot Reserve"
+                    title="Kelola Menu | Reservasi Ruang Dugamasa"
                     description="Kelola menu makanan dan minuman restoran"
                 />
                 <PageBreadcrumb pageTitle="Kelola Menu" />
@@ -258,7 +258,7 @@ export default function ManageMenu() {
     return (
         <>
             <PageMeta
-                title="Kelola Menu | Kafkot Reserve"
+                title="Kelola Menu | Reservasi Ruang Dugamasa"
                 description="Kelola menu makanan dan minuman restoran"
             />
             <PageBreadcrumb pageTitle="Kelola Menu" />
