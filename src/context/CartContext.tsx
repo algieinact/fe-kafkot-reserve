@@ -6,10 +6,10 @@ interface CartContextType {
   totalItems: number;
   totalPrice: number;
   addItem: (menu: Menu, quantity: number) => void;
-  removeItem: (menuId: string) => void;
-  updateQuantity: (menuId: string, quantity: number) => void;
+  removeItem: (menuId: number) => void;
+  updateQuantity: (menuId: number, quantity: number) => void;
   clearCart: () => void;
-  getItemQuantity: (menuId: string) => number;
+  getItemQuantity: (menuId: number) => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -55,11 +55,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   };
 
-  const removeItem = (menuId: string) => {
+  const removeItem = (menuId: number) => {
     setCartItems((prevItems) => prevItems.filter((item) => item.menu.id !== menuId));
   };
 
-  const updateQuantity = (menuId: string, quantity: number) => {
+  const updateQuantity = (menuId: number, quantity: number) => {
     if (quantity <= 0) {
       removeItem(menuId);
       return;
@@ -77,7 +77,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem(CART_STORAGE_KEY);
   };
 
-  const getItemQuantity = (menuId: string): number => {
+  const getItemQuantity = (menuId: number): number => {
     const item = cartItems.find((item) => item.menu.id === menuId);
     return item ? item.quantity : 0;
   };

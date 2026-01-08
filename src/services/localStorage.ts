@@ -12,6 +12,7 @@ export interface ReservationHistory {
   tableType?: string;
   totalAmount: number;
   status: string;
+  rejection_reason?: string; // Alasan penolakan jika status = rejected
   orderItems: Array<{
     menuName: string;
     quantity: number;
@@ -61,14 +62,17 @@ export const reservationStorage = {
   },
 
   /**
-   * Update reservation status
+   * Update reservation status and rejection reason
    */
-  updateStatus(bookingCode: string, status: string): void {
+  updateStatus(bookingCode: string, status: string, rejectionReason?: string): void {
     try {
       const reservations = this.getAll();
       const index = reservations.findIndex(r => r.bookingCode === bookingCode);
       if (index !== -1) {
         reservations[index].status = status;
+        if (rejectionReason) {
+          reservations[index].rejection_reason = rejectionReason;
+        }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations));
       }
     } catch (error) {

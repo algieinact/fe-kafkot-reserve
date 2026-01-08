@@ -9,9 +9,12 @@ const HistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState<string | null>(null);
 
-  // Load reservations from localStorage
+  // Load reservations from localStorage and auto-refresh from backend
   useEffect(() => {
     loadReservations();
+    // Auto-refresh all statuses from backend
+    refreshAllStatuses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadReservations = () => {
@@ -21,15 +24,47 @@ const HistoryPage: React.FC = () => {
     setLoading(false);
   };
 
+  // Auto-refresh all reservation statuses from backend
+  const refreshAllStatuses = async () => {
+    const data = reservationStorage.getAll();
+
+    // Refresh each reservation in parallel
+    const refreshPromises = data.map(async (reservation) => {
+      try {
+        const response = await reservationApi.getByBookingCode(reservation.bookingCode);
+        if (response.success && response.data) {
+          // Update localStorage with latest status and rejection reason
+          reservationStorage.updateStatus(
+            reservation.bookingCode,
+            response.data.status,
+            response.data.rejection_reason
+          );
+        }
+      } catch (error) {
+        console.error(`Error refreshing ${reservation.bookingCode}:`, error);
+      }
+    });
+
+    // Wait for all refreshes to complete
+    await Promise.all(refreshPromises);
+
+    // Reload reservations to show updated statuses
+    loadReservations();
+  };
+
   // Refresh status from backend
   const refreshStatus = async (bookingCode: string) => {
     try {
       setRefreshing(bookingCode);
       const response = await reservationApi.getByBookingCode(bookingCode);
-      
+
       if (response.success && response.data) {
-        // Update localStorage
-        reservationStorage.updateStatus(bookingCode, response.data.status);
+        // Update localStorage with status and rejection reason
+        reservationStorage.updateStatus(
+          bookingCode,
+          response.data.status,
+          response.data.rejection_reason
+        );
         // Reload reservations
         loadReservations();
       }
@@ -257,6 +292,18 @@ const HistoryPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
+
+                {/* Rejection Reason - Show only if status is rejected */}
+                {reservation.status === 'rejected' && reservation.rejection_reason && (
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="mb-2 text-sm font-medium text-red-600">Alasan Penolakan</p>
+                    <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                      <p className="text-sm text-red-800">
+                        {reservation.rejection_reason}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           ))}

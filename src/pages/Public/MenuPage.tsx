@@ -32,7 +32,7 @@ const MenuPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showCartModal, setShowCartModal] = useState(false);
-  
+
   // API state
   const [menus, setMenus] = useState<Menu[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,13 +48,13 @@ const MenuPage: React.FC = () => {
         const response = await menuApi.getMenus({
           available_only: true,
         });
-        
+
         console.log("📦 API Response received:", response);
         console.log("response.success:", response.success);
         console.log("response.data:", response.data);
         console.log("response.data type:", typeof response.data);
         console.log("Is response.data an array?", Array.isArray(response.data));
-        
+
         if (response.success && response.data) {
           // Ensure data is an array
           const menuData = Array.isArray(response.data) ? response.data : [];
@@ -95,7 +95,7 @@ const MenuPage: React.FC = () => {
     console.log("menus.length:", menus.length);
     console.log("selectedCategory:", selectedCategory);
     console.log("searchQuery:", searchQuery);
-    
+
     // Ensure menus is always an array
     if (!Array.isArray(menus)) {
       console.log("❌ Not an array!");
@@ -120,7 +120,7 @@ const MenuPage: React.FC = () => {
     const result = filtered.filter((menu) => menu.is_available);
     console.log("After is_available filter:", result.length);
     console.log("Final filtered menus:", result);
-    
+
     return result;
   }, [menus, selectedCategory, searchQuery]);
 
@@ -134,14 +134,14 @@ const MenuPage: React.FC = () => {
     addItem(menu, 1);
   };
 
-  const handleIncreaseQuantity = (menuId: string) => {
+  const handleIncreaseQuantity = (menuId: number) => {
     const item = cartItems.find((item) => item.menu.id === menuId);
     if (item) {
       updateQuantity(menuId, item.quantity + 1);
     }
   };
 
-  const handleDecreaseQuantity = (menuId: string) => {
+  const handleDecreaseQuantity = (menuId: number) => {
     const item = cartItems.find((item) => item.menu.id === menuId);
     if (item) {
       if (item.quantity > 1) {
@@ -152,11 +152,11 @@ const MenuPage: React.FC = () => {
     }
   };
 
-  const handleRemoveItem = (menuId: string) => {
+  const handleRemoveItem = (menuId: number) => {
     removeItem(menuId);
   };
 
-  const getItemQuantity = (menuId: string) => {
+  const getItemQuantity = (menuId: number) => {
     const item = cartItems.find((item) => item.menu.id === menuId);
     return item ? item.quantity : 0;
   };
@@ -178,9 +178,8 @@ const MenuPage: React.FC = () => {
             {carouselImages.map((image, index) => (
               <div
                 key={index}
-                className={`absolute inset-0 transition-opacity duration-1000 ${
-                  index === currentSlide ? "opacity-100" : "opacity-0"
-                }`}
+                className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"
+                  }`}
               >
                 <img
                   src={image.url}
@@ -220,9 +219,8 @@ const MenuPage: React.FC = () => {
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
-                className={`h-2 w-2 rounded-full transition ${
-                  index === currentSlide ? "bg-white w-8" : "bg-white/50"
-                }`}
+                className={`h-2 w-2 rounded-full transition ${index === currentSlide ? "bg-white w-8" : "bg-white/50"
+                  }`}
               />
             ))}
           </div>
@@ -266,41 +264,37 @@ const MenuPage: React.FC = () => {
           <div className="flex gap-2 overflow-x-auto">
             <button
               onClick={() => setSelectedCategory("all")}
-              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                selectedCategory === "all"
-                  ? "bg-brand-500 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              }`}
+              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${selectedCategory === "all"
+                ? "bg-brand-500 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                }`}
             >
               Semua
             </button>
             <button
-              onClick={() => setSelectedCategory(MenuCategory.DRINK)}
-              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                selectedCategory === MenuCategory.DRINK
-                  ? "bg-brand-500 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              }`}
+              onClick={() => setSelectedCategory("drink")}
+              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${selectedCategory === "drink"
+                ? "bg-brand-500 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                }`}
             >
               Minuman
             </button>
             <button
-              onClick={() => setSelectedCategory(MenuCategory.FOOD)}
-              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                selectedCategory === MenuCategory.FOOD
-                  ? "bg-brand-500 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              }`}
+              onClick={() => setSelectedCategory("food")}
+              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${selectedCategory === "food"
+                ? "bg-brand-500 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                }`}
             >
               Makanan
             </button>
             <button
-              onClick={() => setSelectedCategory(MenuCategory.DESSERT)}
-              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                selectedCategory === MenuCategory.DESSERT
-                  ? "bg-brand-500 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              }`}
+              onClick={() => setSelectedCategory("dessert")}
+              className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium transition ${selectedCategory === "dessert"
+                ? "bg-brand-500 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                }`}
             >
               Dessert
             </button>
@@ -346,81 +340,81 @@ const MenuPage: React.FC = () => {
 
         {/* Menu Grid - 2 columns on mobile, 2 on sm, 3 on lg, 4 on xl */}
         {!loading && !error && (
-        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredMenus.map((menu) => {
-            const quantity = getItemQuantity(menu.id);
-            return (
-              <Card key={menu.id}>
-                <div className="flex flex-col">
-                  {/* Image */}
-                  <div className="relative h-48 overflow-hidden rounded-lg bg-gray-100">
-                    <img
-                      src={menu.image_url || "https://via.placeholder.com/400x300"}
-                      alt={menu.menu_name}
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute right-2 top-2">
-                      <span className="inline-flex rounded-full bg-brand-500 px-3 py-1 text-xs font-medium text-white">
-                        {formatMenuCategory(menu.category)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="mt-4 flex flex-1 flex-col">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {menu.menu_name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {menu.description}
-                    </p>
-                    <div className="mt-auto pt-4">
-                      <div className="mb-3 text-xl font-bold text-brand-500">
-                        {formatCurrency(menu.price)}
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredMenus.map((menu) => {
+              const quantity = getItemQuantity(menu.id);
+              return (
+                <Card key={menu.id}>
+                  <div className="flex flex-col">
+                    {/* Image */}
+                    <div className="relative h-48 overflow-hidden rounded-lg bg-gray-100">
+                      <img
+                        src={menu.image_url || "https://via.placeholder.com/400x300"}
+                        alt={menu.menu_name}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute right-2 top-2">
+                        <span className="inline-flex rounded-full bg-brand-500 px-3 py-1 text-xs font-medium text-white">
+                          {formatMenuCategory(menu.category)}
+                        </span>
                       </div>
-                      {quantity > 0 ? (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleDecreaseQuantity(menu.id)}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg bg-error-500 text-white transition hover:bg-error-600"
-                          >
-                            {quantity === 1 ? (
-                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            ) : (
-                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                              </svg>
-                            )}
-                          </button>
-                          <span className="flex h-9 min-w-[3rem] items-center justify-center rounded-lg bg-brand-50 px-3 text-sm font-semibold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
-                            {quantity}
-                          </span>
-                          <button
-                            onClick={() => handleIncreaseQuantity(menu.id)}
-                            className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-white transition hover:bg-brand-600"
-                          >
-                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                          </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="mt-4 flex flex-1 flex-col">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {menu.menu_name}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {menu.description}
+                      </p>
+                      <div className="mt-auto pt-4">
+                        <div className="mb-3 text-xl font-bold text-brand-500">
+                          {formatCurrency(menu.price)}
                         </div>
-                      ) : (
-                        <button
-                          onClick={() => handleAddToCart(menu)}
-                          className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
-                        >
-                          Tambah ke Keranjang
-                        </button>
-                      )}
+                        {quantity > 0 ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleDecreaseQuantity(menu.id)}
+                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-error-500 text-white transition hover:bg-error-600"
+                            >
+                              {quantity === 1 ? (
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              ) : (
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                </svg>
+                              )}
+                            </button>
+                            <span className="flex h-9 min-w-[3rem] items-center justify-center rounded-lg bg-brand-50 px-3 text-sm font-semibold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+                              {quantity}
+                            </span>
+                            <button
+                              onClick={() => handleIncreaseQuantity(menu.id)}
+                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-white transition hover:bg-brand-600"
+                            >
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleAddToCart(menu)}
+                            className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
+                          >
+                            Tambah ke Keranjang
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                </Card>
+              );
+            })}
+          </div>
         )}
 
         {/* Empty State */}

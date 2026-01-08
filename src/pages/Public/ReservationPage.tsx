@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useCart } from "../../context/CartContext";
-import { TableType, Table, OrderItem } from "../../types";
-import { mockTables } from "../../data/mockData";
+import { Table, TableTypeDetail } from "../../types";
 import {
   validateEmail,
   validatePhone,
@@ -15,10 +14,15 @@ import { Card, CardTitle } from "../../components/ui/card";
 import Button from "../../components/ui/button/Button";
 import DatePicker from "../../components/form/date-picker";
 import { reservationStorage } from "../../services/localStorage";
+import { reservationApi, tableApi } from "../../services/api";
 
 const ReservationPage: React.FC = () => {
   const navigate = useNavigate();
   const { cartItems, totalPrice } = useCart();
+
+  // Table types from API
+  const [tableTypes, setTableTypes] = useState<TableTypeDetail[]>([]);
+  const [loadingTableTypes, setLoadingTableTypes] = useState(true);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -28,7 +32,7 @@ const ReservationPage: React.FC = () => {
     reservation_date: "",
     reservation_time: "",
     number_of_people: 2,
-    table_type: TableType.INDOOR,
+    table_type_id: 0,
     special_notes: "",
   });
 
@@ -39,6 +43,8 @@ const ReservationPage: React.FC = () => {
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState(2);
   const [endTime, setEndTime] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
 
   // Check if cart is empty
   useEffect(() => {
@@ -47,6 +53,27 @@ const ReservationPage: React.FC = () => {
       navigate("/menu");
     }
   }, [cartItems, navigate]);
+
+  // Fetch table types on mount
+  useEffect(() => {
+    const fetchTableTypes = async () => {
+      try {
+        setLoadingTableTypes(true);
+        const response = await tableApi.getTableTypes();
+        if (response.success && response.data && response.data.length > 0) {
+          setTableTypes(response.data);
+          // Set default table type to first one
+          setFormData(prev => ({ ...prev, table_type_id: response.data![0].id }));
+        }
+      } catch (error) {
+        console.error("Error fetching table types:", error);
+      } finally {
+        setLoadingTableTypes(false);
+      }
+    };
+
+    fetchTableTypes();
+  }, []);
 
   // Generate time slots (09:00 - 22:00, every 30 minutes)
   const generateTimeSlots = () => {
@@ -91,8 +118,8 @@ const ReservationPage: React.FC = () => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleTableTypeChange = (type: TableType) => {
-    setFormData((prev) => ({ ...prev, table_type: type }));
+  const handleTableTypeChange = (typeId: number) => {
+    setFormData((prev) => ({ ...prev, table_type_id: typeId }));
     setShowTableSelection(false);
     setSelectedTable(null);
     setErrors((prev) => ({ ...prev, table_type: "" }));
@@ -120,15 +147,6 @@ const ReservationPage: React.FC = () => {
       newErrors.reservation_date = dateValidation;
     }
 
-    // Validate time
-    const timeValidation = validateReservationTime(
-      formData.reservation_time,
-      formData.reservation_date
-    );
-    if (timeValidation !== true) {
-      newErrors.reservation_time = timeValidation;
-    }
-
     // Validate number of people
     const peopleValidation = validateNumberOfPeople(formData.number_of_people);
     if (peopleValidation !== true) {
@@ -139,85 +157,172 @@ const ReservationPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const checkTableAvailability = () => {
+  const checkTableAvailability = async () => {
+    console.log("=== Checking Table Availability ===");
+
     if (!validateForm()) {
+      console.log("Form validation failed");
       return;
     }
-    
+
     if (!startTime) {
       alert("Pilih jam mulai terlebih dahulu");
       return;
     }
 
-    // Filter tables by type and capacity
-    const filtered = mockTables.filter(
-      (table) =>
-        table.type === formData.table_type &&
-        table.capacity >= formData.number_of_people &&
-        table.is_available
-    );
+    if (!formData.table_type_id) {
+      alert("Pilih tipe meja terlebih dahulu");
+      return;
+    }
 
-    // Sort by capacity (closest match first)
-    const sorted = filtered.sort((a, b) => a.capacity - b.capacity);
+    try {
+      setCheckingAvailability(true);
+      setShowTableSelection(false);
+      setErrors({});
+      const requestData = {
+        reservation_date: formData.reservation_date,
+        reservation_time: startTime,
+        table_type_id: formData.table_type_id.toString(),
+        number_of_people: formData.number_of_people,
+        duration_hours: duration,
+      };
 
-    setAvailableTables(sorted);
-    setShowTableSelection(true);
+      console.log("Request data:", requestData);
+
+      // Call API to check availability
+      const response = await tableApi.checkAvailability(requestData);
+
+      console.log("API Response:", response);
+
+      if (response.success && response.data) {
+        const availableTables = response.data.available_tables || [];
+        console.log("Available tables:", availableTables);
+
+        setAvailableTables(availableTables);
+        setShowTableSelection(true);
+
+        if (availableTables.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            table: "Tidak ada meja tersedia untuk kriteria yang dipilih"
+          }));
+        }
+      } else {
+        console.error("API returned error:", response.error);
+        setErrors((prev) => ({
+          ...prev,
+          table: response.error || "Gagal memeriksa ketersediaan meja"
+        }));
+        setShowTableSelection(true);
+      }
+    } catch (error: any) {
+      console.error("Exception during availability check:", error);
+      setErrors((prev) => ({
+        ...prev,
+        table: "Terjadi kesalahan saat memeriksa ketersediaan meja"
+      }));
+      setShowTableSelection(true);
+    } finally {
+      setCheckingAvailability(false);
+      console.log("=== Availability Check Complete ===");
+    }
   };
 
   const handleTableSelection = (table: Table) => {
     setSelectedTable(table);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedTable) {
       setErrors((prev) => ({ ...prev, table: "Pilih meja terlebih dahulu" }));
       return;
     }
 
-    // Create reservation object
-    const orderItems: OrderItem[] = cartItems.map((item) => ({
-      menu_id: item.menu.id,
-      menu: item.menu,
-      quantity: item.quantity,
-      price: item.menu.price,
-      subtotal: item.menu.price * item.quantity,
-    }));
+    if (!startTime) {
+      setErrors((prev) => ({ ...prev, startTime: "Pilih jam mulai terlebih dahulu" }));
+      return;
+    }
 
-    const reservationData = {
-      ...formData,
-      reservation_time: startTime,
-      duration_hours: duration,
-      order_items: orderItems,
-      table_id: selectedTable.id,
-    };
+    try {
+      setSubmitting(true);
+      setErrors({});
 
-    // Save to localStorage
-    reservationStorage.add({
-      bookingCode: `TEMP-${Date.now()}`,
-      customerName: formData.customer_name,
-      customerEmail: formData.customer_email,
-      customerPhone: formData.customer_phone,
-      reservationDate: formData.reservation_date,
-      reservationTime: startTime,
-      durationHours: duration,
-      numberOfPeople: formData.number_of_people,
-      tableNumber: selectedTable.table_number,
-      tableType: formData.table_type,
-      totalAmount: totalPrice,
-      status: "pending",
-      orderItems: cartItems.map(item => ({
-        menuName: item.menu.menu_name,
-        quantity: item.quantity,
-        price: item.menu.price,
-      })),
-      createdAt: new Date().toISOString(),
-    });
+      // Prepare reservation data for API
+      const reservationData = {
+        customer_name: formData.customer_name,
+        customer_email: formData.customer_email,
+        customer_phone: formData.customer_phone,
+        table_id: selectedTable.id,
+        reservation_date: formData.reservation_date,
+        reservation_time: startTime, // Use startTime instead of formData.reservation_time
+        number_of_people: formData.number_of_people,
+        duration_hours: duration,
+        special_notes: formData.special_notes,
+        order_items: cartItems.map(item => ({
+          menu_id: item.menu.id,
+          quantity: item.quantity
+        }))
+      };
 
-    // Store in sessionStorage for payment page
-    sessionStorage.setItem("pending_reservation", JSON.stringify(reservationData));
+      // Call backend API
+      const response = await reservationApi.createReservation(reservationData);
 
-    // Navigate to payment page
-    navigate("/payment/pending");
+      if (response.success && response.data) {
+        // Get table type name from selected table
+        const tableTypeName = selectedTable.table_type?.type_name ||
+          tableTypes.find(t => t.id === formData.table_type_id)?.type_name ||
+          "Unknown";
+
+        // Save to localStorage as backup/cache
+        reservationStorage.add({
+          bookingCode: response.data.booking_code,
+          customerName: formData.customer_name,
+          customerEmail: formData.customer_email,
+          customerPhone: formData.customer_phone,
+          reservationDate: formData.reservation_date,
+          reservationTime: startTime,
+          durationHours: duration,
+          numberOfPeople: formData.number_of_people,
+          tableNumber: selectedTable.table_number,
+          tableType: tableTypeName,
+          totalAmount: response.data.total_amount || totalPrice,
+          status: response.data.status || "pending_verification",
+          orderItems: cartItems.map(item => ({
+            menuName: item.menu.menu_name,
+            quantity: item.quantity,
+            price: item.menu.price,
+          })),
+          createdAt: new Date().toISOString(),
+        });
+
+
+        // Store in sessionStorage for payment page
+        sessionStorage.setItem("pending_reservation", JSON.stringify({
+          ...reservationData,
+          booking_code: response.data.booking_code,
+          id: response.data.id,
+          // Add complete order items with menu details for payment page
+          order_items: cartItems.map(item => ({
+            menu_id: item.menu.id,
+            quantity: item.quantity,
+            menu: item.menu,
+            price: item.menu.price,
+            subtotal: item.menu.price * item.quantity
+          }))
+        }));
+
+        // Navigate to payment page with booking code
+        navigate(`/payment/${response.data.booking_code}`);
+      } else {
+        // Handle API error
+        setErrors({ submit: response.error || "Gagal membuat reservasi. Silakan coba lagi." });
+      }
+    } catch (error: any) {
+      console.error("Error creating reservation:", error);
+      setErrors({ submit: error.message || "Terjadi kesalahan. Silakan coba lagi." });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -246,9 +351,8 @@ const ReservationPage: React.FC = () => {
                     name="customer_name"
                     value={formData.customer_name}
                     onChange={handleInputChange}
-                    className={`w-full rounded-lg border ${
-                      errors.customer_name ? "border-error-500" : "border-gray-200"
-                    } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
+                    className={`w-full rounded-lg border ${errors.customer_name ? "border-error-500" : "border-gray-200"
+                      } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
                     placeholder="Masukkan nama lengkap"
                   />
                   {errors.customer_name && (
@@ -265,9 +369,8 @@ const ReservationPage: React.FC = () => {
                     name="customer_email"
                     value={formData.customer_email}
                     onChange={handleInputChange}
-                    className={`w-full rounded-lg border ${
-                      errors.customer_email ? "border-error-500" : "border-gray-200"
-                    } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
+                    className={`w-full rounded-lg border ${errors.customer_email ? "border-error-500" : "border-gray-200"
+                      } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
                     placeholder="nama@email.com"
                   />
                   {errors.customer_email && (
@@ -284,9 +387,8 @@ const ReservationPage: React.FC = () => {
                     name="customer_phone"
                     value={formData.customer_phone}
                     onChange={handleInputChange}
-                    className={`w-full rounded-lg border ${
-                      errors.customer_phone ? "border-error-500" : "border-gray-200"
-                    } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
+                    className={`w-full rounded-lg border ${errors.customer_phone ? "border-error-500" : "border-gray-200"
+                      } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
                     placeholder="08123456789"
                   />
                   {errors.customer_phone && (
@@ -310,7 +412,11 @@ const ReservationPage: React.FC = () => {
                       onChange={(selectedDates) => {
                         if (selectedDates && selectedDates.length > 0) {
                           const date = selectedDates[0];
-                          const formattedDate = date.toISOString().split('T')[0];
+                          // Format date in local timezone to avoid date shift
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const formattedDate = `${year}-${month}-${day}`;
                           setFormData((prev) => ({ ...prev, reservation_date: formattedDate }));
                           setErrors((prev) => ({ ...prev, reservation_date: "" }));
                         }
@@ -323,41 +429,22 @@ const ReservationPage: React.FC = () => {
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Waktu <span className="text-error-500">*</span>
+                      Jumlah Orang <span className="text-error-500">*</span>
                     </label>
                     <input
-                      type="time"
-                      name="reservation_time"
-                      value={formData.reservation_time}
+                      type="number"
+                      name="number_of_people"
+                      value={formData.number_of_people}
                       onChange={handleInputChange}
-                      className={`w-full rounded-lg border ${
-                        errors.reservation_time ? "border-error-500" : "border-gray-200"
-                      } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
+                      min="1"
+                      max="20"
+                      className={`w-full rounded-lg border ${errors.number_of_people ? "border-error-500" : "border-gray-200"
+                        } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
                     />
-                    {errors.reservation_time && (
-                      <p className="mt-1 text-sm text-error-500">{errors.reservation_time}</p>
+                    {errors.number_of_people && (
+                      <p className="mt-1 text-sm text-error-500">{errors.number_of_people}</p>
                     )}
                   </div>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Jumlah Orang <span className="text-error-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="number_of_people"
-                    value={formData.number_of_people}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="20"
-                    className={`w-full rounded-lg border ${
-                      errors.number_of_people ? "border-error-500" : "border-gray-200"
-                    } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
-                  />
-                  {errors.number_of_people && (
-                    <p className="mt-1 text-sm text-error-500">{errors.number_of_people}</p>
-                  )}
                 </div>
 
                 {/* Start Time */}
@@ -419,52 +506,36 @@ const ReservationPage: React.FC = () => {
                   <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Tipe Meja <span className="text-error-500">*</span>
                   </label>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <button
-                      type="button"
-                      onClick={() => handleTableTypeChange(TableType.INDOOR)}
-                      className={`rounded-lg border-2 p-4 text-left transition ${
-                        formData.table_type === TableType.INDOOR
-                          ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                          : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
-                      }`}
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white">Indoor</div>
-                      <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                        Ruangan ber-AC
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleTableTypeChange(TableType.SEMI_OUTDOOR)}
-                      className={`rounded-lg border-2 p-4 text-left transition ${
-                        formData.table_type === TableType.SEMI_OUTDOOR
-                          ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                          : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
-                      }`}
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white">Semi Outdoor</div>
-                      <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                        Area beratap terbuka
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleTableTypeChange(TableType.OUTDOOR)}
-                      className={`rounded-lg border-2 p-4 text-left transition ${
-                        formData.table_type === TableType.OUTDOOR
-                          ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                          : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
-                      }`}
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white">Outdoor</div>
-                      <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                        Taman terbuka
-                      </div>
-                    </button>
-                  </div>
+                  {loadingTableTypes ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500">Memuat tipe meja...</p>
+                    </div>
+                  ) : tableTypes.length > 0 ? (
+                    <div className={`grid gap-3 ${tableTypes.length === 3 ? 'sm:grid-cols-3' : tableTypes.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
+                      {tableTypes.map((type) => (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={() => handleTableTypeChange(type.id)}
+                          className={`rounded-lg border-2 p-4 text-left transition ${formData.table_type_id === type.id
+                            ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
+                            : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
+                            }`}
+                        >
+                          <div className="font-medium text-gray-900 dark:text-white">{type.type_name}</div>
+                          {type.description && (
+                            <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                              {type.description}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                      <p className="text-sm text-gray-500">Tidak ada tipe meja tersedia</p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -481,8 +552,12 @@ const ReservationPage: React.FC = () => {
                   />
                 </div>
 
-                <Button onClick={checkTableAvailability} className="w-full">
-                  Cek Ketersediaan Meja
+                <Button
+                  onClick={checkTableAvailability}
+                  className="w-full"
+                  disabled={checkingAvailability}
+                >
+                  {checkingAvailability ? "Memeriksa..." : "Cek Ketersediaan Meja"}
                 </Button>
               </div>
             </Card>
@@ -502,11 +577,10 @@ const ReservationPage: React.FC = () => {
                           <button
                             key={table.id}
                             onClick={() => handleTableSelection(table)}
-                            className={`rounded-lg border-2 p-4 text-left transition ${
-                              selectedTable?.id === table.id
-                                ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                                : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
-                            }`}
+                            className={`rounded-lg border-2 p-4 text-left transition ${selectedTable?.id === table.id
+                              ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
+                              : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
+                              }`}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -533,9 +607,18 @@ const ReservationPage: React.FC = () => {
                       {errors.table && (
                         <p className="mt-2 text-sm text-error-500">{errors.table}</p>
                       )}
+                      {errors.submit && (
+                        <div className="mt-4 rounded-lg bg-error-50 p-3 dark:bg-error-900/20">
+                          <p className="text-sm text-error-800 dark:text-error-200">{errors.submit}</p>
+                        </div>
+                      )}
                       {selectedTable && (
-                        <Button onClick={handleSubmit} className="w-full mt-4">
-                          Konfirmasi Reservasi
+                        <Button
+                          onClick={handleSubmit}
+                          className="w-full mt-4"
+                          disabled={submitting}
+                        >
+                          {submitting ? "Memproses..." : "Konfirmasi Reservasi"}
                         </Button>
                       )}
                     </>
@@ -579,7 +662,7 @@ const ReservationPage: React.FC = () => {
               </div>
             </Card>
 
-            <div className="mt-4 rounded-lg bg-blue-light-50 p-4 dark:bg-blue-light-900/20">
+            <div className="mt-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/10">
               <div className="flex gap-3">
                 <svg className="h-5 w-5 flex-shrink-0 text-blue-light-600" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -588,7 +671,7 @@ const ReservationPage: React.FC = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <div className="text-sm text-blue-light-800 dark:text-blue-light-200">
+                <div className="text-sm text-blue-800 dark:text-blue-900">
                   <strong>Catatan:</strong> Setelah konfirmasi, Anda akan diarahkan ke halaman pembayaran
                   untuk melakukan transfer dan upload bukti pembayaran.
                 </div>

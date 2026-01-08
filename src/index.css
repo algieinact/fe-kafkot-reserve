@@ -2,38 +2,6 @@
 
 @import "tailwindcss";
 
-/* Force light mode */
-:root {
-  color-scheme: light only;
-}
-
-html {
-  background: white;
-  color: #1f2937;
-}
-
-/* Override dark mode classes */
-.dark\:bg-gray-900,
-.dark\:bg-gray-800,
-.dark\:bg-gray-dark {
-  background: white !important;
-}
-
-.dark\:bg-white\/\[0\.03\] {
-  background: white !important;
-}
-
-.dark\:text-white,
-.dark\:text-gray-300,
-.dark\:text-gray-400 {
-  color: #1f2937 !important;
-}
-
-.dark\:border-gray-800,
-.dark\:border-gray-700 {
-  border-color: #e5e7eb !important;
-}
-
 @custom-variant dark (&:is(.dark *));
 
 @keyframes gradient {

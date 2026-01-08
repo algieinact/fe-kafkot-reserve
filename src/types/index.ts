@@ -1,35 +1,15 @@
-// Enums
-export enum TableType {
-  INDOOR = "indoor",
-  SEMI_OUTDOOR = "semi_outdoor",
-  OUTDOOR = "outdoor",
-}
+// Enums and Types
+export type TableType = "indoor" | "semi_outdoor" | "outdoor";
 
-export enum ReservationStatus {
-  PENDING_PAYMENT = "pending_payment",
-  PENDING_VERIFICATION = "pending_verification",
-  CONFIRMED = "confirmed",
-  REJECTED = "rejected",
-  CANCELLED = "cancelled",
-  COMPLETED = "completed",
-}
+export type ReservationStatus = "pending_verification" | "confirmed" | "rejected" | "completed" | "cancelled";
 
-export enum PaymentStatus {
-  PENDING = "pending",
-  WAITING_VERIFICATION = "waiting_verification",
-  VERIFIED = "verified",
-  REJECTED = "rejected",
-}
+export type PaymentStatus = "pending" | "waiting_verification" | "verified" | "rejected";
 
-export enum MenuCategory {
-  FOOD = "food",
-  DRINK = "drink",
-  DESSERT = "dessert",
-}
+export type MenuCategory = "food" | "drink" | "dessert";
 
 // Menu Types
 export interface Menu {
-  id: string;
+  id: number;
   menu_name: string;
   category: MenuCategory;
   description: string;
@@ -41,17 +21,22 @@ export interface Menu {
 }
 
 // Table Types
+export interface TableTypeDetail {
+  id: number;
+  type_name: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type TableStatus = "available" | "reserved" | "inactive";
+
 export interface Table {
-  id: string;
+  id: number;
   table_number: string;
-  table_type_id: string;
+  table_type: TableTypeDetail;
   capacity: number;
-  status: string;
-  table_type?: {
-    id: string;
-    type_name: string;
-    description?: string;
-  };
+  status: TableStatus;
   created_at: string;
   updated_at: string;
 }
@@ -59,7 +44,7 @@ export interface Table {
 // Order Item Types
 export interface OrderItem {
   id?: string;
-  menu_id: string;
+  menu_id: number;
   menu?: Menu;
   quantity: number;
   price: number;
@@ -78,44 +63,38 @@ export interface PaymentProof {
 
 // Reservation Types
 export interface Reservation {
-  id: string;
+  id: number;
   booking_code: string;
   // Customer Info
   customer_name: string;
   customer_email: string;
   customer_phone: string;
-  
+
   // Reservation Details
   reservation_date: string;
   reservation_time: string;
   number_of_people: number;
   duration_hours: number;
   special_notes?: string;
-  
+
   // Table Assignment
-  table_id?: string;
+  table_id?: number;
   table?: Table;
-  
+
   // Order
-  reservation_items?: OrderItem[];
+  items?: OrderItem[];
   total_amount: number;
-  
+
   // Payment
-  payment?: {
-    id: string;
-    payment_proof_url?: string;
-    payment_status: string;
-    verified_at?: string;
-  };
-  
+  payment_proof_url?: string;
+  payment?: any;
+
   // Status
   status: ReservationStatus;
-  
+
   // Timestamps
   created_at: string;
   updated_at: string;
-  verified_at?: string;
-  verified_by?: string;
   rejection_reason?: string;
 }
 
@@ -125,7 +104,7 @@ export interface User {
   username: string;
   email: string;
   name: string;
-  role: "admin" | "super_admin";
+  role: "admin" | "super_admin" | "staff";
   created_at: string;
 }
 
@@ -165,17 +144,17 @@ export interface ReservationFormData {
   reservation_time: string;
   number_of_people: number;
   duration_hours: number;
-  table_id: string;
+  table_id: number;
   special_notes?: string;
   order_items: {
-    menu_id: string;
+    menu_id: number;
     quantity: number;
   }[];
 }
 
 export interface MenuFormData {
   menu_name: string;
-  category: MenuCategory;
+  category: string;
   description: string;
   price: number;
   image?: File;
@@ -183,10 +162,10 @@ export interface MenuFormData {
 }
 
 export interface TableFormData {
-  table_type_id: string;
   table_number: string;
+  table_type_id: number;
   capacity: number;
-  status?: string;
+  status?: TableStatus;
 }
 
 // Cart Types
@@ -218,11 +197,18 @@ export interface TableAvailabilityResponse {
 
 // Statistics Types (for Admin Dashboard)
 export interface DashboardStats {
-  today_reservations: number;
-  pending_verifications: number;
-  today_revenue: number;
-  monthly_revenue: number;
-  total_customers: number;
+  summary: {
+    total_reservations: number;
+    pending_verifications: number;
+    confirmed_reservations: number;
+    total_revenue: number;
+  };
+  reservations_by_status: Array<{
+    status: string;
+    count: number;
+  }>;
+  recent_reservations: Reservation[];
+  upcoming_reservations: Reservation[];
 }
 
 export interface ReservationChartData {

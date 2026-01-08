@@ -14,6 +14,7 @@ import {
   TableAvailabilityResponse,
   DashboardStats,
   ReservationStatus,
+  TableTypeDetail,
 } from "../types";
 
 // Base API URL - Update this with your actual backend URL
@@ -51,7 +52,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   }
 
   const jsonResponse = await response.json();
-  
+
   // If the backend already returns {success: true, data: ...}, unwrap it
   if (jsonResponse.success !== undefined && jsonResponse.data !== undefined) {
     return {
@@ -61,7 +62,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
       error: jsonResponse.error,
     };
   }
-  
+
   // Otherwise, wrap the response
   return {
     success: true,
@@ -191,15 +192,22 @@ export const tableApi = {
     if (params?.type) queryParams.append("type", params.type);
     if (params?.available_only) queryParams.append("available_only", "true");
 
-    const response = await fetch(`${API_BASE_URL}/tables?${queryParams}`, {
-      headers: createHeaders(),
+    const response = await fetch(`${API_BASE_URL}/admin/tables?${queryParams}`, {
+      headers: createHeaders(true),
     });
     return handleResponse<Table[]>(response);
   },
 
+  getTableTypes: async (): Promise<ApiResponse<TableTypeDetail[]>> => {
+    const response = await fetch(`${API_BASE_URL}/table-types`, {
+      headers: createHeaders(false), // Public endpoint, no auth needed
+    });
+    return handleResponse<TableTypeDetail[]>(response);
+  },
+
   getTableById: async (id: string): Promise<ApiResponse<Table>> => {
-    const response = await fetch(`${API_BASE_URL}/tables/${id}`, {
-      headers: createHeaders(),
+    const response = await fetch(`${API_BASE_URL}/admin/tables/${id}`, {
+      headers: createHeaders(true),
     });
     return handleResponse<Table>(response);
   },
@@ -294,6 +302,13 @@ export const reservationApi = {
         Authorization: `Bearer ${getAuthToken()}`,
       },
       body: formData,
+    });
+    return handleResponse<Reservation>(response);
+  },
+
+  getByBookingCode: async (bookingCode: string): Promise<ApiResponse<Reservation>> => {
+    const response = await fetch(`${API_BASE_URL}/reservations/${bookingCode}`, {
+      headers: createHeaders(false), // Public endpoint
     });
     return handleResponse<Reservation>(response);
   },

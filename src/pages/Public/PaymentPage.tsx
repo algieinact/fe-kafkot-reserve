@@ -76,50 +76,74 @@ const PaymentPage: React.FC = () => {
     e.preventDefault();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedFile) {
       setError("Silakan upload bukti pembayaran terlebih dahulu");
       return;
     }
 
+    if (!reservationData.id) {
+      setError("Data reservasi tidak valid");
+      return;
+    }
+
     setUploading(true);
+    setError("");
 
-    // Simulate upload (in real app, upload to server)
-    setTimeout(() => {
-      // Generate mock reservation ID
-      const generatedId = `RES-${Date.now()}`;
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('payment_proof', selectedFile);
 
-      // Store in sessionStorage for order status page
-      const fullReservation = {
-        ...reservationData,
-        id: generatedId,
-        payment_proof_url: previewUrl,
-        status: "pending_verification",
-        payment_status: "waiting_verification",
-        created_at: new Date().toISOString(),
-      };
+      // Upload to backend
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'}/reservations/${reservationData.id}/upload-payment`, {
+        method: 'POST',
+        body: formData,
+      });
 
-      sessionStorage.setItem(`reservation_${generatedId}`, JSON.stringify(fullReservation));
-      sessionStorage.removeItem("pending_reservation");
+      const result = await response.json();
 
-      // Clear cart
-      clearCart();
+      if (result.success) {
+        // Store in sessionStorage for order status page
+        const fullReservation = {
+          ...reservationData,
+          payment_proof_url: result.data.payment_proof_url,
+          status: "pending_verification",
+          payment_status: "waiting_verification",
+          updated_at: new Date().toISOString(),
+        };
 
+        sessionStorage.setItem(`reservation_${reservationData.booking_code}`, JSON.stringify(fullReservation));
+        sessionStorage.removeItem("pending_reservation");
+
+        // Clear cart
+        clearCart();
+
+        // Navigate to order status
+        navigate(`/order-status/${reservationData.booking_code}`);
+      } else {
+        setError(result.message || "Gagal mengupload bukti pembayaran");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      setError("Terjadi kesalahan saat mengupload bukti pembayaran");
+    } finally {
       setUploading(false);
-
-      // Navigate to order status
-      navigate(`/order-status/${generatedId}`);
-    }, 1500);
+    }
   };
+
 
   if (!reservationData) {
     return null;
   }
 
-  const totalAmount = reservationData.order_items.reduce(
-    (sum: number, item: OrderItem) => sum + item.subtotal,
+  const totalAmount = reservationData.order_items?.reduce(
+    (sum: number, item: OrderItem) => {
+      const itemTotal = item.subtotal || (item.price || 0) * (item.quantity || 0);
+      return sum + itemTotal;
+    },
     0
-  );
+  ) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
@@ -335,13 +359,13 @@ const PaymentPage: React.FC = () => {
                 </div>
                 <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
                   <div className="mb-2 text-gray-600 dark:text-gray-400">Pesanan</div>
-                  {reservationData.order_items.map((item: OrderItem) => (
-                    <div key={item.menu_id} className="mb-2 flex justify-between">
+                  {reservationData.order_items?.map((item: OrderItem, index: number) => (
+                    <div key={item.menu_id || index} className="mb-2 flex justify-between">
                       <div>
-                        {item.menu?.name} x{item.quantity}
+                        {item.menu?.menu_name || 'Menu'} x{item.quantity}
                       </div>
                       <div className="font-medium text-gray-900 dark:text-white">
-                        {formatCurrency(item.subtotal)}
+                        {formatCurrency(item.subtotal || (item.price || 0) * (item.quantity || 0))}
                       </div>
                     </div>
                   ))}

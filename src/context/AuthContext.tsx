@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (user: User, token: string) => void;
   logout: () => void;
   checkAuth: () => Promise<void>;
 }
@@ -43,30 +43,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (
-    username: string,
-    password: string
-  ): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const response = await authApi.login({ username, password });
-
-      if (response.success && response.data) {
-        localStorage.setItem("auth_token", response.data.token);
-        setUser(response.data.user);
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error: response.error || "Login gagal",
-        };
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      return {
-        success: false,
-        error: "Terjadi kesalahan saat login",
-      };
-    }
+  const login = (user: User, token: string): void => {
+    localStorage.setItem("auth_token", token);
+    setUser(user);
   };
 
   const logout = async () => {
