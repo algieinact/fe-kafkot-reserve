@@ -217,61 +217,73 @@ const OrderStatusPage: React.FC = () => {
           <Card>
             <CardTitle>Timeline</CardTitle>
             <div className="mt-6">
-              <div className="relative space-y-8 pl-8">
+              <div className="relative space-y-6">
+                {/* Vertical line connector */}
+                <div className="absolute left-4 top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
+                
                 {/* Step 1: Reservasi Created */}
-                <div className="relative">
-                  <div className="absolute -left-8 flex h-8 w-8 items-center justify-center rounded-full bg-success-500">
-                    <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+                <div className="relative flex gap-4">
+                  <div className="relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                    <div className="h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400"></div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white pl-2">Reservasi Dibuat</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 pl-2">
+                  <div className="flex-1 pt-0.5">
+                    <div className="text-sm">
+                      <span className="font-semibold text-gray-900 dark:text-white">{reservation.customer_name}</span>
+                      <span className="text-gray-600 dark:text-gray-400"> membuat reservasi</span>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
                       {formatDate(reservation.created_at)} - {formatTime(reservation.created_at)}
                     </div>
                   </div>
                 </div>
 
                 {/* Step 2: Payment Proof Uploaded */}
-                <div className="relative">
-                  <div className={`absolute -left-8 flex h-8 w-8 items-center justify-center rounded-full ${
-                    reservation.payment_proof_url ? "bg-success-500" : "bg-gray-300"
+                <div className="relative flex gap-4">
+                  <div className={`relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+                    reservation.payment_proof_url 
+                      ? "bg-purple-100 dark:bg-purple-900/30" 
+                      : "bg-gray-100 dark:bg-gray-800"
                   }`}>
-                    {reservation.payment_proof_url ? (
-                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    ) : (
-                      <div className="h-3 w-3 rounded-full bg-gray-500"></div>
-                    )}
+                    <div className={`h-2 w-2 rounded-full ${
+                      reservation.payment_proof_url 
+                        ? "bg-purple-600 dark:bg-purple-400" 
+                        : "bg-gray-400 dark:bg-gray-600"
+                    }`}></div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white pl-2">Bukti Pembayaran Diunggah</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 pl-2">
+                  <div className="flex-1 pt-0.5">
+                    <div className="text-sm">
+                      <span className="font-semibold text-gray-900 dark:text-white">{reservation.customer_name}</span>
+                      <span className="text-gray-600 dark:text-gray-400"> mengunggah bukti pembayaran</span>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
                       {reservation.payment_proof_url ? "Berhasil diunggah" : "Menunggu"}
                     </div>
                   </div>
                 </div>
 
                 {/* Step 3: Verification */}
-                <div className="relative">
-                  <div className={`absolute -left-8 flex h-8 w-8 items-center justify-center rounded-full ${
-                    reservation.status === "confirmed" ? "bg-success-500" : 
-                    reservation.status === "rejected" ? "bg-error-500" :
-                    "bg-warning-500"
+                <div className="relative flex gap-4">
+                  <div className={`relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+                    reservation.status === "confirmed" ? "bg-green-100 dark:bg-green-900/30" : 
+                    reservation.status === "rejected" ? "bg-red-100 dark:bg-red-900/30" :
+                    "bg-yellow-100 dark:bg-yellow-900/30"
                   }`}>
-                    {reservation.status === "confirmed" || reservation.status === "rejected" ? (
-                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    ) : (
-                      <div className="h-3 w-3 animate-pulse rounded-full bg-white"></div>
-                    )}
+                    <div className={`h-2 w-2 rounded-full ${
+                      reservation.status === "confirmed" ? "bg-green-600 dark:bg-green-400" : 
+                      reservation.status === "rejected" ? "bg-red-600 dark:bg-red-400" :
+                      "bg-yellow-600 dark:bg-yellow-400 animate-pulse"
+                    }`}></div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white pl-2">Verifikasi Pembayaran</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 pl-2">
+                  <div className="flex-1 pt-0.5">
+                    <div className="text-sm">
+                      <span className="font-semibold text-gray-900 dark:text-white">Admin</span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {reservation.status === "confirmed" && " memverifikasi pembayaran"}
+                        {reservation.status === "rejected" && " menolak pembayaran"}
+                        {reservation.status === "pending_verification" && " sedang memverifikasi pembayaran"}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
                       {reservation.status === "confirmed" && "Terverifikasi"}
                       {reservation.status === "rejected" && "Ditolak"}
                       {reservation.status === "pending_verification" && "Sedang diverifikasi..."}
@@ -281,15 +293,17 @@ const OrderStatusPage: React.FC = () => {
 
                 {/* Step 4: Confirmed (if applicable) */}
                 {reservation.status === "confirmed" && (
-                  <div className="relative">
-                    <div className="absolute -left-8 flex h-8 w-8 items-center justify-center rounded-full bg-success-500">
-                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="relative flex gap-4">
+                    <div className="relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                      <svg className="h-4 w-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">Reservasi Dikonfirmasi</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex-1 pt-0.5">
+                      <div className="text-sm">
+                        <span className="font-semibold text-gray-900 dark:text-white">Reservasi dikonfirmasi</span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
                         Siap untuk kunjungan Anda!
                       </div>
                     </div>

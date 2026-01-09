@@ -85,29 +85,55 @@ const ReservationPage: React.FC = () => {
     return slots;
   };
 
-  // Calculate end time
-  const calculateEndTime = (start: string, hours: number) => {
-    if (!start) return "";
-    const [h, m] = start.split(':').map(Number);
-    const endHour = h + hours;
-    const endMinute = m;
-    return `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+  // Calculate duration in hours from start and end time
+  const calculateDuration = (start: string, end: string): number => {
+    if (!start || !end) return 0;
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const durationMinutes = endMinutes - startMinutes;
+    return durationMinutes / 60; // Convert to hours
   };
 
-  // Get max duration based on start time
-  const getMaxDuration = (startTime: string) => {
-    if (!startTime) return 5;
-    const [h] = startTime.split(':').map(Number);
+  // Get available end time slots based on start time
+  const getAvailableEndTimes = (start: string) => {
+    if (!start) return [];
+    const [startH, startM] = start.split(':').map(Number);
+    const slots = [];
     const closingHour = 22;
-    return Math.min(5, closingHour - h);
+    const maxDurationHours = 5;
+    
+    // Generate slots from 30 minutes after start time
+    for (let hour = startH; hour <= closingHour; hour++) {
+      for (let minute of [0, 30]) {
+        if (hour === startH && (hour * 60 + minute) <= (startH * 60 + startM)) continue;
+        
+        const timeSlot = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const duration = calculateDuration(start, timeSlot);
+        
+        // Only include slots that are within max duration and before closing
+        if (duration > 0 && duration <= maxDurationHours && hour < closingHour) {
+          slots.push(timeSlot);
+        }
+        // Include closing time if within max duration
+        if (hour === closingHour && minute === 0 && duration > 0 && duration <= maxDurationHours) {
+          slots.push(timeSlot);
+        }
+      }
+    }
+    return slots;
   };
 
-  // Update end time when start time or duration changes
+  // Update duration when start time or end time changes
   useEffect(() => {
-    if (startTime && duration) {
-      setEndTime(calculateEndTime(startTime, duration));
+    if (startTime && endTime) {
+      const calculatedDuration = calculateDuration(startTime, endTime);
+      setDuration(calculatedDuration);
+    } else {
+      setDuration(0);
     }
-  }, [startTime, duration]);
+  }, [startTime, endTime]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -167,6 +193,16 @@ const ReservationPage: React.FC = () => {
 
     if (!startTime) {
       alert("Pilih jam mulai terlebih dahulu");
+      return;
+    }
+
+    if (!endTime) {
+      alert("Pilih jam selesai terlebih dahulu");
+      return;
+    }
+
+    if (duration <= 0 || duration > 5) {
+      alert("Durasi harus antara 0.5 - 5 jam");
       return;
     }
 
@@ -240,6 +276,16 @@ const ReservationPage: React.FC = () => {
 
     if (!startTime) {
       setErrors((prev) => ({ ...prev, startTime: "Pilih jam mulai terlebih dahulu" }));
+      return;
+    }
+
+    if (!endTime) {
+      setErrors((prev) => ({ ...prev, endTime: "Pilih jam selesai terlebih dahulu" }));
+      return;
+    }
+
+    if (duration <= 0 || duration > 5) {
+      setErrors((prev) => ({ ...prev, duration: "Durasi harus antara 0.5 - 5 jam" }));
       return;
     }
 
@@ -447,60 +493,67 @@ const ReservationPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Start Time */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Jam Mulai <span className="text-error-500">*</span>
-                  </label>
-                  <select
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white"
-                    required
-                  >
-                    <option value="">Pilih Jam Mulai</option>
-                    {generateTimeSlots().map(slot => (
-                      <option key={slot} value={slot}>{slot}</option>
-                    ))}
-                  </select>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Cafe buka: 09:00 - 22:00
-                  </p>
+                {/* Time Selection */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Start Time */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Jam Mulai <span className="text-error-500">*</span>
+                    </label>
+                    <select
+                      value={startTime}
+                      onChange={(e) => {
+                        setStartTime(e.target.value);
+                        setEndTime(""); // Reset end time when start time changes
+                      }}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white"
+                      required
+                    >
+                      <option value="">Pilih Jam Mulai</option>
+                      {generateTimeSlots().map(slot => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* End Time */}
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Jam Selesai <span className="text-error-500">*</span>
+                    </label>
+                    <select
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white"
+                      required
+                      disabled={!startTime}
+                    >
+                      <option value="">Pilih Jam Selesai</option>
+                      {getAvailableEndTimes(startTime).map(slot => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                {/* Duration */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Durasi <span className="text-error-500">*</span>
-                  </label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white"
-                    required
-                    disabled={!startTime}
-                  >
-                    {[1, 2, 3, 4, 5].map(hours => {
-                      const maxDuration = getMaxDuration(startTime);
-                      if (hours > maxDuration) return null;
-                      return (
-                        <option key={hours} value={hours}>
-                          {hours} Jam
-                        </option>
-                      );
-                    })}
-                  </select>
-                  {startTime && endTime && (
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Reservasi selesai pada: <span className="font-semibold">{endTime}</span>
+                {/* Duration Info */}
+                {startTime && endTime && duration > 0 && (
+                  <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      <span className="font-semibold">Durasi:</span> {duration} jam ({startTime} - {endTime})
                     </p>
-                  )}
-                  {!startTime && (
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Pilih jam mulai terlebih dahulu
-                    </p>
-                  )}
-                </div>
+                  </div>
+                )}
+                {!startTime && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Cafe buka: 09:00 - 22:00 • Maksimal durasi: 5 jam
+                  </p>
+                )}
+                {startTime && !endTime && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Pilih jam selesai (maksimal 5 jam dari jam mulai)
+                  </p>
+                )}
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
