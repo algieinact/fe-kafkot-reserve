@@ -105,12 +105,13 @@ const PaymentPage: React.FC = () => {
 
       if (result.success) {
         // Store in sessionStorage for order status page
+        // Use the complete data from API response which includes items with menu details
         const fullReservation = {
-          ...reservationData,
-          payment_proof_url: result.data.payment_proof_url,
+          ...result.data,
+          // Map items or reservation_items to order_items for consistency
+          order_items: result.data.items || result.data.reservation_items || reservationData.order_items,
           status: "pending_verification",
           payment_status: "waiting_verification",
-          updated_at: new Date().toISOString(),
         };
 
         sessionStorage.setItem(`reservation_${reservationData.booking_code}`, JSON.stringify(fullReservation));

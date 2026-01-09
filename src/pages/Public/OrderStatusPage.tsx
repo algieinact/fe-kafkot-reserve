@@ -3,20 +3,73 @@ import { useParams, Link } from "react-router";
 import { formatCurrency, formatDate, formatTime, formatReservationStatus } from "../../utils/formatters";
 import { Card, CardTitle } from "../../components/ui/card";
 import Button from "../../components/ui/button/Button";
+import { reservationApi } from "../../services/api";
 
 const OrderStatusPage: React.FC = () => {
   const { orderId } = useParams();
   const [reservation, setReservation] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get reservation from sessionStorage
-    if (orderId) {
-      const data = sessionStorage.getItem(`reservation_${orderId}`);
-      if (data) {
-        setReservation(JSON.parse(data));
+    const fetchReservation = async () => {
+      if (!orderId) {
+        setLoading(false);
+        return;
       }
-    }
+
+      try {
+        // First, try to get from sessionStorage
+        const cachedData = sessionStorage.getItem(`reservation_${orderId}`);
+        
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          
+          // Check if we have basic reservation data
+          if (parsed.customer_name && parsed.booking_code) {
+            setReservation(parsed);
+            setLoading(false);
+            return;
+          }
+        }
+
+
+        // If not in sessionStorage or incomplete, fetch from API
+        const response = await reservationApi.getByBookingCode(orderId);
+        
+        if (response.success && response.data) {
+          // Map items or reservation_items to order_items for consistency
+          const apiData = response.data as any;
+          const reservationData = {
+            ...response.data,
+            order_items: apiData.items || apiData.reservation_items || []
+          };
+          
+          // Save to sessionStorage for future use
+          sessionStorage.setItem(`reservation_${orderId}`, JSON.stringify(reservationData));
+          setReservation(reservationData);
+        }
+      } catch (error) {
+        console.error("Error fetching reservation:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReservation();
   }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card>
+          <div className="p-8 text-center">
+            <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-brand-500"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Memuat data reservasi...</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (!reservation) {
     return (
@@ -100,7 +153,7 @@ const OrderStatusPage: React.FC = () => {
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Status Reservasi</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            ID Reservasi: <span className="font-mono font-semibold">{reservation.id}</span>
+            ID Reservasi: <span className="font-mono font-semibold">{reservation.booking_code}</span>
           </p>
         </div>
 
@@ -120,7 +173,7 @@ const OrderStatusPage: React.FC = () => {
               
               {reservation.status === "pending_verification" && (
                 <p className="mt-4 text-gray-600 dark:text-gray-400">
-                  Kami sedang memverifikasi bukti pembayaran Anda. Proses ini biasanya memakan waktu maksimal 1x24 jam.
+                  Kami sedang memverifikasi bukti pembayaran Anda.
                 </p>
               )}
 
@@ -135,11 +188,11 @@ const OrderStatusPage: React.FC = () => {
                         <svg className="mx-auto h-32 w-32" viewBox="0 0 100 100">
                           <rect width="100" height="100" fill="white"/>
                           <text x="50" y="50" fontSize="8" textAnchor="middle" dominantBaseline="middle" fill="black">
-                            {reservation.id}
+                            {reservation.booking_code}
                           </text>
                         </svg>
                         <p className="mt-2 text-xs text-gray-600">
-                          {reservation.id}
+                          {reservation.booking_code}
                         </p>
                       </div>
                     </div>
@@ -173,8 +226,8 @@ const OrderStatusPage: React.FC = () => {
                     </svg>
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">Reservasi Dibuat</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="font-semibold text-gray-900 dark:text-white pl-2">Reservasi Dibuat</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 pl-2">
                       {formatDate(reservation.created_at)} - {formatTime(reservation.created_at)}
                     </div>
                   </div>
@@ -194,8 +247,8 @@ const OrderStatusPage: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">Bukti Pembayaran Diunggah</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="font-semibold text-gray-900 dark:text-white pl-2">Bukti Pembayaran Diunggah</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 pl-2">
                       {reservation.payment_proof_url ? "Berhasil diunggah" : "Menunggu"}
                     </div>
                   </div>
@@ -217,8 +270,8 @@ const OrderStatusPage: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">Verifikasi Pembayaran</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="font-semibold text-gray-900 dark:text-white pl-2">Verifikasi Pembayaran</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 pl-2">
                       {reservation.status === "confirmed" && "Terverifikasi"}
                       {reservation.status === "rejected" && "Ditolak"}
                       {reservation.status === "pending_verification" && "Sedang diverifikasi..."}
@@ -292,17 +345,26 @@ const OrderStatusPage: React.FC = () => {
           <Card>
             <CardTitle>Ringkasan Pesanan</CardTitle>
             <div className="mt-4 space-y-3">
-              {reservation.order_items.map((item: any, index: number) => (
-                <div key={index} className="flex items-start justify-between text-sm">
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">{item.menu?.name}</div>
-                    <div className="text-gray-600 dark:text-gray-400">x{item.quantity}</div>
+              {reservation.order_items.map((item: any, index: number) => {
+                // Try multiple ways to get menu name
+                const menuName = item.menu?.menu_name || 
+                                item.menu?.name || 
+                                item.menu_name || 
+                                item.name || 
+                                'Menu';
+                
+                return (
+                  <div key={index} className="flex items-start justify-between text-sm">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 dark:text-white">{menuName}</div>
+                    </div>
+                    <div className="text-gray-600 dark:text-gray-400 pr-4">x{item.quantity}</div>
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {formatCurrency(item.subtotal)}
+                    </div>
                   </div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {formatCurrency(item.subtotal)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div className="font-semibold text-gray-900 dark:text-white">Total Pembayaran</div>
