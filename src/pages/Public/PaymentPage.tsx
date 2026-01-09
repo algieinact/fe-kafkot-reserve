@@ -197,7 +197,7 @@ const PaymentPage: React.FC = () => {
                     Atas Nama:
                   </div>
                   <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                    PT Kafkot Indonesia
+                    PT Ruang Dugamasa Indonesia
                   </div>
                 </div>
 

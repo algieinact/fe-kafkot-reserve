@@ -11,7 +11,7 @@ import { menuApi } from "../../services/api";
 const carouselImages = [
   {
     url: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&h=400&fit=crop",
-    title: "Selamat Datang di Kafkot",
+    title: "Selamat Datang di Ruang Dugamasa",
     subtitle: "Nikmati kopi terbaik dengan suasana nyaman"
   },
   {

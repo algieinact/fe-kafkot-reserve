@@ -85,7 +85,7 @@ const PublicLayout: React.FC = () => {
             {/* About */}
             <div>
               <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                Tentang Kafkot
+                Tentang Ruang DugaMasa
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Cafe nyaman dengan berbagai pilihan menu lezat. Reservasi mudah, pembayaran
@@ -119,7 +119,7 @@ const PublicLayout: React.FC = () => {
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>info@kafkot.com</span>
+                  <span>info@ruangdugamasa.com</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <svg className="mt-0.5 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

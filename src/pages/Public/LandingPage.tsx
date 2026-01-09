@@ -64,7 +64,7 @@ const LandingPage: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-              Kenapa Pilih Kafkot?
+              Kenapa Pilih Ruang Dugamasa?
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400">
               Pengalaman reservasi yang mudah dan nyaman
