@@ -403,7 +403,7 @@ const MenuPage: React.FC = () => {
                             onClick={() => handleAddToCart(menu)}
                             className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
                           >
-                            Tambah ke Keranjang
+                            Pesan
                           </button>
                         )}
                       </div>

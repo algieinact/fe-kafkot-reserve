@@ -1,6 +1,32 @@
 // Enums and Types
 export type TableType = "indoor" | "semi_outdoor" | "outdoor";
 
+// Visual Table Layout Types
+export type TableShape = "square" | "rectangle";
+export type AreaType = "indoor" | "semi_outdoor" | "outdoor";
+
+export interface TablePosition {
+  tableNumber: string;      // Display number like "A1", "B2", etc
+  x: number;                // Position X in pixels (for layout config)
+  y: number;                // Position Y in pixels (for layout config)
+  width: number;            // Width in pixels (for layout config)
+  height: number;           // Height in pixels (for layout config)
+  shape: TableShape;        // Shape of table
+  backendTableId?: number;  // Optional: mapping to backend table ID
+}
+
+export interface TableLayoutConfig {
+  areaId: AreaType;
+  areaName: string;
+  width: number;            // Canvas width in pixels
+  height: number;           // Canvas height in pixels
+  tables: TablePosition[];
+}
+
+export interface TableWithStatus extends Table {
+  position?: TablePosition;  // Optional position data for visual display
+}
+
 export type ReservationStatus = "pending_verification" | "confirmed" | "rejected" | "completed" | "cancelled";
 
 export type PaymentStatus = "pending" | "waiting_verification" | "verified" | "rejected";

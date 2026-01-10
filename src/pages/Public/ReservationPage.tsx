@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useCart } from "../../context/CartContext";
-import { Table, TableTypeDetail } from "../../types";
+import { Table, TableTypeDetail, AreaType } from "../../types";
 import {
   validateEmail,
   validatePhone,
@@ -15,6 +15,10 @@ import Button from "../../components/ui/button/Button";
 import DatePicker from "../../components/form/date-picker";
 import { reservationStorage } from "../../services/localStorage";
 import { reservationApi, tableApi } from "../../services/api";
+import TableLayoutViewer from "../../components/reservation/TableLayoutViewer";
+import AreaTabs from "../../components/reservation/AreaTabs";
+import { getLayoutByArea } from "../../config/tableLayoutConfig";
+import { getDummyAvailableTables } from "../../data/dummyTableData";
 
 const ReservationPage: React.FC = () => {
   const navigate = useNavigate();
@@ -45,6 +49,7 @@ const ReservationPage: React.FC = () => {
   const [endTime, setEndTime] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [selectedArea, setSelectedArea] = useState<AreaType>('indoor');
 
   // Check if cart is empty
   useEffect(() => {
@@ -214,42 +219,37 @@ const ReservationPage: React.FC = () => {
     try {
       setCheckingAvailability(true);
       setShowTableSelection(false);
+      setSelectedTable(null);
       setErrors({});
-      const requestData = {
-        reservation_date: formData.reservation_date,
-        reservation_time: startTime,
-        table_type_id: formData.table_type_id.toString(),
-        number_of_people: formData.number_of_people,
-        duration_hours: duration,
-      };
 
-      console.log("Request data:", requestData);
+      // TODO: Replace with real API call when backend ready
+      // const response = await tableApi.checkAvailability(requestData);
+      
+      // TEMPORARY: Use dummy data
+      console.log("Using dummy data for table availability");
+      const dummyTables = getDummyAvailableTables(
+        formData.table_type_id,
+        formData.reservation_date,
+        startTime
+      );
 
-      // Call API to check availability
-      const response = await tableApi.checkAvailability(requestData);
+      console.log("Dummy tables:", dummyTables);
 
-      console.log("API Response:", response);
+      // Map positions from layout config
+      const layout = getLayoutByArea(selectedArea);
+      const tablesWithPositions = dummyTables.map(table => {
+        const position = layout.tables.find(p => p.tableNumber === table.table_number);
+        return { ...table, position };
+      }).filter(table => table.position); // Only include tables that have positions in layout
 
-      if (response.success && response.data) {
-        const availableTables = response.data.available_tables || [];
-        console.log("Available tables:", availableTables);
+      setAvailableTables(tablesWithPositions);
+      setShowTableSelection(true);
 
-        setAvailableTables(availableTables);
-        setShowTableSelection(true);
-
-        if (availableTables.length === 0) {
-          setErrors((prev) => ({
-            ...prev,
-            table: "Tidak ada meja tersedia untuk kriteria yang dipilih"
-          }));
-        }
-      } else {
-        console.error("API returned error:", response.error);
+      if (tablesWithPositions.length === 0) {
         setErrors((prev) => ({
           ...prev,
-          table: response.error || "Gagal memeriksa ketersediaan meja"
+          table: "Tidak ada meja tersedia untuk kriteria yang dipilih"
         }));
-        setShowTableSelection(true);
       }
     } catch (error: any) {
       console.error("Exception during availability check:", error);
@@ -264,8 +264,12 @@ const ReservationPage: React.FC = () => {
     }
   };
 
-  const handleTableSelection = (table: Table) => {
-    setSelectedTable(table);
+  const handleTableSelection = (tableId: number) => {
+    const table = availableTables.find(t => t.id === tableId);
+    if (table) {
+      setSelectedTable(table);
+      setErrors((prev) => ({ ...prev, table: "" }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -615,75 +619,77 @@ const ReservationPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Available Tables */}
+            {/* Visual Table Selection */}
             {showTableSelection && (
               <Card>
                 <CardTitle>Pilih Meja</CardTitle>
                 <div className="mt-4">
-                  {availableTables.length > 0 ? (
-                    <>
-                      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                        {availableTables.length} meja tersedia untuk {formData.number_of_people} orang
-                      </p>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {availableTables.map((table) => (
-                          <button
-                            key={table.id}
-                            onClick={() => handleTableSelection(table)}
-                            className={`rounded-lg border-2 p-4 text-left transition ${selectedTable?.id === table.id
-                              ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                              : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
-                              }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="font-medium text-gray-900 dark:text-white">
-                                  Meja {table.table_number}
-                                </div>
-                                <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                                  Kapasitas: {table.capacity} orang
-                                </div>
-                              </div>
-                              {selectedTable?.id === table.id && (
-                                <svg className="h-6 w-6 text-brand-500" fill="currentColor" viewBox="0 0 20 20">
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                      {errors.table && (
-                        <p className="mt-2 text-sm text-error-500">{errors.table}</p>
-                      )}
-                      {errors.submit && (
-                        <div className="mt-4 rounded-lg bg-error-50 p-3 dark:bg-error-900/20">
-                          <p className="text-sm text-error-800 dark:text-error-200">{errors.submit}</p>
+                  {/* Area Tabs */}
+                  <AreaTabs
+                    activeArea={selectedArea}
+                    onAreaChange={(area) => {
+                      setSelectedArea(area);
+                      setSelectedTable(null); // Reset selection when changing area
+                    }}
+                    availableCounts={{
+                      indoor: availableTables.filter(t => t.table_number.startsWith('A') || t.table_number.startsWith('B') || t.table_number.startsWith('C') || t.table_number.startsWith('D')).length,
+                      semi_outdoor: availableTables.filter(t => t.table_number.startsWith('S')).length,
+                      outdoor: availableTables.filter(t => t.table_number.startsWith('O')).length,
+                    }}
+                  />
+
+                  {/* Visual Layout */}
+                  <TableLayoutViewer
+                    layout={getLayoutByArea(selectedArea)}
+                    tables={availableTables}
+                    selectedTableId={selectedTable?.id || null}
+                    onTableSelect={handleTableSelection}
+                  />
+
+                  {/* Selected Table Info */}
+                  {selectedTable && (
+                    <div className="mt-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-blue-900 dark:text-blue-100">
+                            Meja Terpilih: {selectedTable.table_number}
+                          </p>
+                          <p className="mt-1 text-sm text-blue-700 dark:text-blue-200">
+                            Kapasitas: {selectedTable.capacity} orang
+                          </p>
                         </div>
-                      )}
-                      {selectedTable && (
-                        <Button
-                          onClick={handleSubmit}
-                          className="w-full mt-4"
-                          disabled={submitting}
-                        >
-                          {submitting ? "Memproses..." : "Konfirmasi Reservasi"}
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <div className="rounded-lg bg-error-50 p-4 text-center dark:bg-error-900/20">
-                      <p className="text-sm font-medium text-error-800 dark:text-error-200">
-                        Tidak ada meja tersedia untuk kriteria yang dipilih
-                      </p>
-                      <p className="mt-1 text-xs text-error-600 dark:text-error-300">
-                        Coba pilih tanggal/waktu lain atau tipe meja berbeda
-                      </p>
+                        <svg className="h-8 w-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
                     </div>
+                  )}
+
+                  {/* Error Messages */}
+                  {errors.table && (
+                    <div className="mt-4 rounded-lg bg-error-50 p-3 dark:bg-error-900/20">
+                      <p className="text-sm text-error-800 dark:text-error-200">{errors.table}</p>
+                    </div>
+                  )}
+                  {errors.submit && (
+                    <div className="mt-4 rounded-lg bg-error-50 p-3 dark:bg-error-900/20">
+                      <p className="text-sm text-error-800 dark:text-error-200">{errors.submit}</p>
+                    </div>
+                  )}
+
+                  {/* Confirmation Button */}
+                  {selectedTable && (
+                    <Button
+                      onClick={handleSubmit}
+                      className="w-full mt-4"
+                      disabled={submitting}
+                    >
+                      {submitting ? "Memproses..." : "Konfirmasi Reservasi"}
+                    </Button>
                   )}
                 </div>
               </Card>

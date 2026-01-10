@@ -1,22 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { tableApi } from "../../services/api";
-import { Table, TableFormData, TableTypeDetail } from "../../types";
+import { Table, TableFormData, TableTypeDetail, AreaType } from "../../types";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Button from "../../components/ui/button/Button";
 import DataTableOne, { ColumnConfig } from "../../components/tables/DataTables/TableOne/DataTableOne";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { Modal } from "../../components/ui/modal";
+import AreaTabs from "../../components/reservation/AreaTabs";
+import AdminTableLayoutViewer from "../../components/admin/AdminTableLayoutViewer";
+import { getLayoutByArea } from "../../config/tableLayoutConfig";
 
 export default function ManageTable() {
     const [tables, setTables] = useState<Table[]>([]);
     const [tableTypes, setTableTypes] = useState<TableTypeDetail[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [showModal, setShowModal] = useState(false);
+    const [selectedArea, setSelectedArea] = useState<AreaType>('indoor');
+
+    // Edit Modal State
+    const [showEditModal, setShowEditModal] = useState(false);
     const [editingTable, setEditingTable] = useState<Table | null>(null);
-    const [formData, setFormData] = useState<TableFormData>({
+    const [editFormData, setEditFormData] = useState<TableFormData>({
         table_number: "",
         table_type_id: 1,
         capacity: 2,
@@ -25,7 +31,7 @@ export default function ManageTable() {
 
     // Confirmation Modal State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [tableToDelete, setTableToDelete] = useState<number | null>(null);
+    const [tableToDelete, setTableToDelete] = useState<Table | null>(null);
     const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
@@ -38,10 +44,6 @@ export default function ManageTable() {
             const response = await tableApi.getTableTypes();
             if (response.success && response.data) {
                 setTableTypes(response.data);
-                // Set default type if available
-                if (response.data.length > 0) {
-                    setFormData(prev => ({ ...prev, table_type_id: response.data?.[0].id || 1 }));
-                }
             }
         } catch (err) {
             console.error("Failed to fetch table types:", err);
@@ -66,30 +68,78 @@ export default function ManageTable() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // Handle assign table from layout
+    const handleAssignTable = async (position: any, tableNumber: string) => {
         try {
-            if (editingTable) {
-                const response = await tableApi.updateTable(editingTable.id.toString(), formData);
-                if (response.success) {
-                    await fetchTables();
-                    closeModal();
-                }
+            // Auto-fill capacity based on table number
+            let capacity = 2;
+            if (tableNumber.startsWith('A')) capacity = 2;
+            else if (tableNumber.startsWith('B')) capacity = 4;
+            else if (tableNumber.startsWith('C')) capacity = 6;
+            else if (tableNumber.startsWith('D')) capacity = 8;
+            else if (tableNumber.startsWith('S1') || tableNumber.startsWith('S2') || tableNumber.startsWith('S3')) capacity = 2;
+            else if (tableNumber.startsWith('S4') || tableNumber.startsWith('S5') || tableNumber.startsWith('S6')) capacity = 4;
+            else if (tableNumber.startsWith('S7') || tableNumber.startsWith('S8') || tableNumber.startsWith('S9')) capacity = 6;
+            else if (tableNumber.startsWith('O')) capacity = 4;
+
+            // Determine table type based on area
+            let tableTypeId = 1; // default indoor
+            if (selectedArea === 'semi_outdoor') tableTypeId = 2;
+            else if (selectedArea === 'outdoor') tableTypeId = 3;
+
+            const formData: TableFormData = {
+                table_number: tableNumber,
+                table_type_id: tableTypeId,
+                capacity: capacity,
+                status: "available",
+            };
+
+            const response = await tableApi.createTable(formData);
+            if (response.success) {
+                await fetchTables();
             } else {
-                const response = await tableApi.createTable(formData);
-                if (response.success) {
-                    await fetchTables();
-                    closeModal();
-                }
+                setError(response.error || "Gagal menambahkan meja");
             }
         } catch (err) {
-            console.error("Submit error:", err);
-            setError("Gagal menyimpan data meja");
+            console.error("Assign error:", err);
+            setError("Gagal menambahkan meja");
         }
     };
 
-    const confirmDelete = (id: number) => {
-        setTableToDelete(id);
+    // Handle edit table
+    const handleEditTable = (table: Table) => {
+        setEditingTable(table);
+        setEditFormData({
+            table_number: table.table_number,
+            table_type_id: table.table_type.id,
+            capacity: table.capacity,
+            status: table.status,
+        });
+        setShowEditModal(true);
+    };
+
+    const handleUpdateTable = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingTable) return;
+
+        try {
+            const response = await tableApi.updateTable(editingTable.id.toString(), editFormData);
+            if (response.success) {
+                await fetchTables();
+                setShowEditModal(false);
+                setEditingTable(null);
+            } else {
+                setError(response.error || "Gagal mengupdate meja");
+            }
+        } catch (err) {
+            console.error("Update error:", err);
+            setError("Gagal mengupdate meja");
+        }
+    };
+
+    // Handle delete table
+    const confirmDelete = (table: Table) => {
+        setTableToDelete(table);
         setShowDeleteModal(true);
     };
 
@@ -98,7 +148,7 @@ export default function ManageTable() {
 
         try {
             setDeleting(true);
-            const response = await tableApi.deleteTable(tableToDelete.toString());
+            const response = await tableApi.deleteTable(tableToDelete.id.toString());
             if (response.success) {
                 await fetchTables();
                 setShowDeleteModal(false);
@@ -114,44 +164,11 @@ export default function ManageTable() {
         }
     };
 
-    const openModal = (table?: Table) => {
-        if (table) {
-            setEditingTable(table);
-            setFormData({
-                table_number: table.table_number,
-                table_type_id: table.table_type.id,
-                capacity: table.capacity,
-                status: table.status,
-            });
-        } else {
-            setEditingTable(null);
-            setFormData({
-                table_number: "",
-                table_type_id: tableTypes.length > 0 ? tableTypes[0].id : 1,
-                capacity: 2,
-                status: "available",
-            });
-        }
-        setShowModal(true);
-    };
-
-    const closeModal = () => {
-        setShowModal(false);
-        setEditingTable(null);
-        setFormData({
-            table_number: "",
-            table_type_id: tableTypes.length > 0 ? tableTypes[0].id : 1,
-            capacity: 2,
-            status: "available",
-        });
-        setError(null);
-    };
-
     const getTypeBadge = (type: string) => {
         const badges = {
             indoor: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
             outdoor: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-            vip: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+            semi_outdoor: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
         };
         return badges[type as keyof typeof badges] || badges.indoor;
     };
@@ -217,14 +234,14 @@ export default function ManageTable() {
             render: (_val, row) => (
                 <div className="flex items-center gap-1.5">
                     <button
-                        onClick={() => openModal(row as Table)}
+                        onClick={() => handleEditTable(row as Table)}
                         className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                         title="Edit"
                     >
                         <Edit className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={() => confirmDelete(row.id)}
+                        onClick={() => confirmDelete(row as Table)}
                         className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         title="Hapus"
                     >
@@ -240,6 +257,20 @@ export default function ManageTable() {
     const availableTables = tables.filter(t => t.status === "available").length;
     const unavailableTables = tables.filter(t => t.status !== "available").length;
     const totalCapacity = tables.reduce((sum, t) => sum + t.capacity, 0);
+
+    // Get tables for selected area
+    const tablesForArea = tables.filter(t => {
+        const tableNum = t.table_number;
+        if (selectedArea === 'indoor') {
+            return tableNum.startsWith('A') || tableNum.startsWith('B') || 
+                   tableNum.startsWith('C') || tableNum.startsWith('D');
+        } else if (selectedArea === 'semi_outdoor') {
+            return tableNum.startsWith('S');
+        } else if (selectedArea === 'outdoor') {
+            return tableNum.startsWith('O');
+        }
+        return false;
+    });
 
     if (loading) {
         return (
@@ -275,7 +306,7 @@ export default function ManageTable() {
                     </div>
                 )}
 
-                {/* Summary Statistics Cards - Dashboard Style */}
+                {/* Summary Statistics Cards */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Total Tables Card */}
                     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -394,9 +425,31 @@ export default function ManageTable() {
                     </div>
                 </div>
 
+                {/* Visual Layout Manager */}
+                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Layout Meja
+                    </h2>
+
+                    {/* Area Tabs */}
+                    <AreaTabs
+                        activeArea={selectedArea}
+                        onAreaChange={setSelectedArea}
+                    />
+
+                    {/* Visual Layout */}
+                    <AdminTableLayoutViewer
+                        layout={getLayoutByArea(selectedArea)}
+                        tables={tablesForArea}
+                        onAssignTable={handleAssignTable}
+                        onEditTable={handleEditTable}
+                        onDeleteTable={confirmDelete}
+                    />
+                </div>
+
                 {/* Data Table */}
                 <DataTableOne
-                    title="Daftar Meja"
+                    title="Daftar Semua Meja"
                     data={tables}
                     columns={columns}
                     defaultItemsPerPage={10}
@@ -405,41 +458,30 @@ export default function ManageTable() {
                     defaultSortOrder="asc"
                     searchable={true}
                     searchPlaceholder="Cari nomor meja, tipe, status..."
-                    actionButton={
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => openModal()}
-                        >
-                            <Plus className="w-4 h-4" />
-                            Tambah Meja
-                        </Button>
-                    }
                 />
             </div>
 
-            {/* Add/Edit Modal */}
-            <Modal isOpen={showModal} onClose={closeModal} className="max-w-lg">
-                <form onSubmit={handleSubmit}>
+            {/* Edit Modal */}
+            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} className="max-w-lg">
+                <form onSubmit={handleUpdateTable}>
                     <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                            {editingTable ? "Edit Meja" : "Tambah Meja Baru"}
+                            Edit Meja {editingTable?.table_number}
                         </h3>
                     </div>
 
                     <div className="px-6 py-4 space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Nomor Meja <span className="text-red-500">*</span>
+                                Nomor Meja
                             </label>
                             <input
                                 type="text"
-                                value={formData.table_number}
-                                onChange={(e) => setFormData({ ...formData, table_number: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                                placeholder="Contoh: A1, B2, VIP-1"
-                                required
+                                value={editFormData.table_number}
+                                disabled
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-800 dark:text-white cursor-not-allowed"
                             />
+                            <p className="mt-1 text-xs text-gray-500">Nomor meja tidak dapat diubah</p>
                         </div>
 
                         <div>
@@ -447,8 +489,8 @@ export default function ManageTable() {
                                 Tipe Meja <span className="text-red-500">*</span>
                             </label>
                             <select
-                                value={formData.table_type_id}
-                                onChange={(e) => setFormData({ ...formData, table_type_id: Number(e.target.value) })}
+                                value={editFormData.table_type_id}
+                                onChange={(e) => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                             >
                                 {tableTypes.map((type) => (
@@ -465,8 +507,8 @@ export default function ManageTable() {
                             </label>
                             <input
                                 type="number"
-                                value={formData.capacity}
-                                onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
+                                value={editFormData.capacity}
+                                onChange={(e) => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
                                 min="1"
                                 max="20"
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
@@ -479,8 +521,8 @@ export default function ManageTable() {
                                 Status <span className="text-red-500">*</span>
                             </label>
                             <select
-                                value={formData.status || "available"}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value as "available" | "reserved" | "inactive" })}
+                                value={editFormData.status || "available"}
+                                onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as "available" | "reserved" | "inactive" })}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                             >
                                 <option value="available">Tersedia</option>
@@ -493,13 +535,13 @@ export default function ManageTable() {
                     <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3">
                         <Button
                             type="button"
-                            onClick={closeModal}
+                            onClick={() => setShowEditModal(false)}
                             variant="outline"
                         >
                             Batal
                         </Button>
                         <Button type="submit" variant="primary">
-                            {editingTable ? "Simpan Perubahan" : "Tambah Meja"}
+                            Simpan Perubahan
                         </Button>
                     </div>
                 </form>
@@ -511,7 +553,7 @@ export default function ManageTable() {
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={handleDelete}
                 title="Hapus Meja"
-                message="Apakah Anda yakin ingin menghapus meja ini? Tindakan ini tidak dapat dibatalkan."
+                message={`Apakah Anda yakin ingin menghapus meja ${tableToDelete?.table_number}? Tindakan ini tidak dapat dibatalkan.`}
                 variant="danger"
                 isLoading={deleting}
                 confirmText="Hapus"
