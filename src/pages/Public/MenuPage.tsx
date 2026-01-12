@@ -159,6 +159,20 @@ const MenuPage: React.FC = () => {
     return item ? item.quantity : 0;
   };
 
+  // Get category color based on menu category
+  const getCategoryColor = (category: MenuCategory) => {
+    switch (category) {
+      case "drink":
+        return "bg-blue-700"; // Blue for drinks
+      case "food":
+        return "bg-brand-500"; // Orange for food
+      case "dessert":
+        return "bg-red-700"; // Pink for dessert
+      default:
+        return "bg-brand-500"; // Default brand color
+    }
+  };
+
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
   };
@@ -344,30 +358,35 @@ const MenuPage: React.FC = () => {
               return (
                 <Card key={menu.id}>
                   <div className="flex flex-col">
-                    {/* Image */}
-                    <div className="relative h-48 overflow-hidden rounded-lg bg-gray-100">
+                    {/* Image - No padding, full width */}
+                    <div className="relative w-full aspect-[3/2] overflow-hidden bg-gray-100">
                       <img
                         src={menu.image_url || "https://via.placeholder.com/400x300"}
                         alt={menu.menu_name}
                         className="h-full w-full object-cover"
                       />
-                      <div className="absolute right-2 top-2">
-                        <span className="inline-flex rounded-full bg-brand-500 px-3 py-1 text-xs font-medium text-white">
+                      <div className="absolute right-3 top-3">
+                        <span className={`inline-flex rounded-full ${getCategoryColor(menu.category)} px-3 py-1 text-[0.6rem] xl:text-xs font-medium text-white`}>
                           {formatMenuCategory(menu.category)}
                         </span>
                       </div>
                     </div>
 
-                    {/* Content */}
-                    <div className="mt-4 flex flex-1 flex-col">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {/* Content - With padding */}
+                    <div className="px-3 pb-3 pt-3 flex flex-1 flex-col sm:px-4 sm:pb-4">
+                      {/* Title - Single line with ellipsis */}
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white line-clamp-1 min-h-[1.75rem]">
                         {menu.menu_name}
                       </h3>
-                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                      
+                      {/* Description - Always takes 2 lines of space */}
+                      {/* <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2 min-h-[2.5rem]">
                         {menu.description}
-                      </p>
-                      <div className="mt-auto pt-4">
-                        <div className="mb-3 text-xl font-bold text-brand-500">
+                      </p> */}
+                      
+                      {/* Price and Button - Pushed to bottom */}
+                      <div className="mt-auto pt-0">
+                        <div className="mb-3 text-md xl:text-xl font-bold text-brand-500">
                           {formatCurrency(menu.price)}
                         </div>
                         {quantity > 0 ? (
@@ -401,7 +420,7 @@ const MenuPage: React.FC = () => {
                         ) : (
                           <button
                             onClick={() => handleAddToCart(menu)}
-                            className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
+                            className="w-full rounded-full border-2 border-brand-500 bg-white px-2 xl:px-4 py-1 xl:py-2 text-md font-medium text-brand-500 transition hover:bg-brand-600 hover:text-white"
                           >
                             Pesan
                           </button>
