@@ -183,7 +183,7 @@ export default function SignInForm({ isAdminMode = false }: SignInFormProps) {
                   )}
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" disabled={loading}>
+                  <Button className="w-full" size="sm" disabled={loading} type="submit">
                     {loading ? (
                       <>
                         <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">

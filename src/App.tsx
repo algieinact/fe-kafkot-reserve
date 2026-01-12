@@ -10,7 +10,7 @@ import RoleBasedRoute from "./components/auth/RoleBasedRoute";
 
 // Public Pages
 import MenuPage from "./pages/Public/MenuPage";
-import ReservationPage from "./pages/Public/ReservationPage";
+import ReservationPage from "./pages/Public/ReservationPageMultiStep";
 import PaymentPage from "./pages/Public/PaymentPage";
 import OrderStatusPage from "./pages/Public/OrderStatusPage";
 import HistoryPage from "./pages/Public/HistoryPage";

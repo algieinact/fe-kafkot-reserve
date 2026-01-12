@@ -23,9 +23,14 @@ const TableLayoutViewer: React.FC<TableLayoutViewerProps> = ({
     return tables.find(t => t.table_number === position.tableNumber);
   };
 
-  // Count available tables
-  const availableCount = tables.filter(t => t.status === 'available').length;
+  // Count available tables - check is_available_for_booking if available
+  const availableCount = tables.filter(t => {
+    const isAvailable = (t as any).is_available_for_booking ?? (t.status === 'available');
+    return isAvailable;
+  }).length;
   const totalCount = layout.tables.length;
+
+  console.log('TableLayoutViewer - Total tables:', tables.length, 'Available:', availableCount);
 
   return (
     <div className="space-y-4">
@@ -62,12 +67,21 @@ const TableLayoutViewer: React.FC<TableLayoutViewerProps> = ({
           <div className="absolute inset-0 p-2 md:p-4">
             {layout.tables.map((position) => {
               const table = getTableWithPosition(position);
-              
+
+              // Debug logging
+              console.log('Position:', position.tableNumber, 'Table found:', table);
+
               // Skip if table not found in data
-              if (!table) return null;
+              if (!table) {
+                console.warn(`Table ${position.tableNumber} not found in data`);
+                return null;
+              }
 
               const isSelected = selectedTableId === table.id;
-              const isAvailable = table.status === 'available';
+              // Use is_available_for_booking from backend if available, fallback to status
+              const isAvailable = (table as any).is_available_for_booking ?? (table.status === 'available');
+
+              console.log(`Table ${table.table_number}: isAvailable=${isAvailable}, status=${table.status}`);
 
               return (
                 <TableButton
@@ -76,7 +90,7 @@ const TableLayoutViewer: React.FC<TableLayoutViewerProps> = ({
                   position={position}
                   isSelected={isSelected}
                   isAvailable={isAvailable}
-                  onSelect={onTableSelect}
+                  onTableSelect={onTableSelect}
                   canvasWidth={layout.width}
                   canvasHeight={layout.height}
                 />

@@ -1,32 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useCart } from "../../context/CartContext";
-import { Table, TableTypeDetail, AreaType } from "../../types";
+import { Table } from "../../types";
 import {
   validateEmail,
   validatePhone,
   validateReservationDate,
-
-  validateNumberOfPeople,
 } from "../../utils/validators";
 import { formatCurrency } from "../../utils/formatters";
 import { Card, CardTitle } from "../../components/ui/card";
 import Button from "../../components/ui/button/Button";
 import DatePicker from "../../components/form/date-picker";
 import { reservationStorage } from "../../services/localStorage";
-import { reservationApi, tableApi } from "../../services/api";
-import TableLayoutViewer from "../../components/reservation/TableLayoutViewer";
-import AreaTabs from "../../components/reservation/AreaTabs";
-import { getLayoutByArea } from "../../config/tableLayoutConfig";
-import { getDummyAvailableTables } from "../../data/dummyTableData";
+import DynamicTableLayout from "../../components/reservation/DynamicTableLayout";
 
 const ReservationPage: React.FC = () => {
   const navigate = useNavigate();
   const { cartItems, totalPrice } = useCart();
-
-  // Table types from API
-  const [tableTypes, setTableTypes] = useState<TableTypeDetail[]>([]);
-  const [loadingTableTypes, setLoadingTableTypes] = useState(true);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -34,10 +24,6 @@ const ReservationPage: React.FC = () => {
     customer_email: "",
     customer_phone: "",
     reservation_date: "",
-    reservation_time: "",
-    number_of_people: 2,
-    table_type_id: 0,
-    special_notes: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,36 +35,9 @@ const ReservationPage: React.FC = () => {
   const [endTime, setEndTime] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
-  const [selectedArea, setSelectedArea] = useState<AreaType>('indoor');
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(null);
 
-  // Check if cart is empty
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      // Redirect to menu if no items
-      navigate("/menu");
-    }
-  }, [cartItems, navigate]);
-
-  // Fetch table types on mount
-  useEffect(() => {
-    const fetchTableTypes = async () => {
-      try {
-        setLoadingTableTypes(true);
-        const response = await tableApi.getTableTypes();
-        if (response.success && response.data && response.data.length > 0) {
-          setTableTypes(response.data);
-          // Set default table type to first one
-          setFormData(prev => ({ ...prev, table_type_id: response.data![0].id }));
-        }
-      } catch (error) {
-        console.error("Error fetching table types:", error);
-      } finally {
-        setLoadingTableTypes(false);
-      }
-    };
-
-    fetchTableTypes();
-  }, []);
 
   // Generate time slots (09:00 - 22:00, every 30 minutes)
   const generateTimeSlots = () => {
@@ -108,15 +67,15 @@ const ReservationPage: React.FC = () => {
     const slots = [];
     const closingHour = 22;
     const maxDurationHours = 5;
-    
+
     // Generate slots from 30 minutes after start time
     for (let hour = startH; hour <= closingHour; hour++) {
       for (let minute of [0, 30]) {
         if (hour === startH && (hour * 60 + minute) <= (startH * 60 + startM)) continue;
-        
+
         const timeSlot = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         const duration = calculateDuration(start, timeSlot);
-        
+
         // Only include slots that are within max duration and before closing
         if (duration > 0 && duration <= maxDurationHours && hour < closingHour) {
           slots.push(timeSlot);
@@ -149,13 +108,6 @@ const ReservationPage: React.FC = () => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleTableTypeChange = (typeId: number) => {
-    setFormData((prev) => ({ ...prev, table_type_id: typeId }));
-    setShowTableSelection(false);
-    setSelectedTable(null);
-    setErrors((prev) => ({ ...prev, table_type: "" }));
-  };
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -178,11 +130,6 @@ const ReservationPage: React.FC = () => {
       newErrors.reservation_date = dateValidation;
     }
 
-    // Validate number of people
-    const peopleValidation = validateNumberOfPeople(formData.number_of_people);
-    if (peopleValidation !== true) {
-      newErrors.number_of_people = peopleValidation;
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -211,10 +158,6 @@ const ReservationPage: React.FC = () => {
       return;
     }
 
-    if (!formData.table_type_id) {
-      alert("Pilih tipe meja terlebih dahulu");
-      return;
-    }
 
     try {
       setCheckingAvailability(true);
@@ -222,34 +165,50 @@ const ReservationPage: React.FC = () => {
       setSelectedTable(null);
       setErrors({});
 
-      // TODO: Replace with real API call when backend ready
-      // const response = await tableApi.checkAvailability(requestData);
-      
-      // TEMPORARY: Use dummy data
-      console.log("Using dummy data for table availability");
-      const dummyTables = getDummyAvailableTables(
-        formData.table_type_id,
-        formData.reservation_date,
-        startTime
-      );
+      const requestData = {
+        reservation_date: formData.reservation_date,
+        reservation_time: startTime,
+        duration_hours: duration,
+      };
 
-      console.log("Dummy tables:", dummyTables);
+      console.log("Request data:", requestData);
 
-      // Map positions from layout config
-      const layout = getLayoutByArea(selectedArea);
-      const tablesWithPositions = dummyTables.map(table => {
-        const position = layout.tables.find(p => p.tableNumber === table.table_number);
-        return { ...table, position };
-      }).filter(table => table.position); // Only include tables that have positions in layout
+      // Call API to get all tables with availability status
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${apiUrl}/tables/availability-status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
 
-      setAvailableTables(tablesWithPositions);
-      setShowTableSelection(true);
+      const data = await response.json();
 
-      if (tablesWithPositions.length === 0) {
+      console.log("API Response:", data);
+
+      if (data.success && data.data && data.data.tables) {
+        const tables = data.data.tables;
+
+        console.log("Tables from API:", tables);
+
+        // Just store tables directly - no need for position mapping
+        setAvailableTables(tables);
+        setShowTableSelection(true);
+
+        if (tables.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            table: "Tidak ada meja tersedia untuk kriteria yang dipilih"
+          }));
+        }
+      } else {
+        console.error("API returned error:", data.error);
         setErrors((prev) => ({
           ...prev,
-          table: "Tidak ada meja tersedia untuk kriteria yang dipilih"
+          table: data.error || "Gagal memeriksa ketersediaan meja"
         }));
+        setShowTableSelection(true);
       }
     } catch (error: any) {
       console.error("Exception during availability check:", error);
@@ -269,6 +228,33 @@ const ReservationPage: React.FC = () => {
     if (table) {
       setSelectedTable(table);
       setErrors((prev) => ({ ...prev, table: "" }));
+    }
+  };
+
+  const handlePaymentProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrors((prev) => ({ ...prev, payment_proof: "File harus berupa gambar" }));
+        return;
+      }
+
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, payment_proof: "Ukuran file maksimal 2MB" }));
+        return;
+      }
+
+      setPaymentProof(file);
+      setErrors((prev) => ({ ...prev, payment_proof: "" }));
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPaymentProofPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -297,46 +283,56 @@ const ReservationPage: React.FC = () => {
       setSubmitting(true);
       setErrors({});
 
-      // Prepare reservation data for API
-      const reservationData = {
-        customer_name: formData.customer_name,
-        customer_email: formData.customer_email,
-        customer_phone: formData.customer_phone,
-        table_id: selectedTable.id,
-        reservation_date: formData.reservation_date,
-        reservation_time: startTime, // Use startTime instead of formData.reservation_time
-        number_of_people: formData.number_of_people,
-        duration_hours: duration,
-        special_notes: formData.special_notes,
-        order_items: cartItems.map(item => ({
-          menu_id: item.menu.id,
-          quantity: item.quantity
-        }))
-      };
+      // Validate payment proof
+      if (!paymentProof) {
+        setErrors((prev) => ({ ...prev, payment_proof: "Bukti pembayaran wajib diupload" }));
+        setSubmitting(false);
+        return;
+      }
 
-      // Call backend API
-      const response = await reservationApi.createReservation(reservationData);
+      // Prepare FormData for API (with file upload)
+      const formDataToSend = new FormData();
+      formDataToSend.append('customer_name', formData.customer_name);
+      formDataToSend.append('customer_email', formData.customer_email);
+      formDataToSend.append('customer_phone', formData.customer_phone);
+      formDataToSend.append('table_id', selectedTable.id.toString());
+      formDataToSend.append('reservation_date', formData.reservation_date);
+      formDataToSend.append('reservation_time', startTime);
+      formDataToSend.append('duration_hours', duration.toString());
+      formDataToSend.append('payment_proof', paymentProof);
 
-      if (response.success && response.data) {
+      // Add order items
+      cartItems.forEach((item, index) => {
+        formDataToSend.append(`order_items[${index}][menu_id]`, item.menu.id.toString());
+        formDataToSend.append(`order_items[${index}][quantity]`, item.quantity.toString());
+      });
+
+      // Call backend API with FormData
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${apiUrl}/reservations`, {
+        method: 'POST',
+        body: formDataToSend, // Don't set Content-Type header, browser will set it with boundary
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
         // Get table type name from selected table
-        const tableTypeName = selectedTable.table_type?.type_name ||
-          tableTypes.find(t => t.id === formData.table_type_id)?.type_name ||
-          "Unknown";
+        const tableTypeName = selectedTable.table_type?.type_name || "Unknown";
 
         // Save to localStorage as backup/cache
         reservationStorage.add({
-          bookingCode: response.data.booking_code,
+          bookingCode: data.data.booking_code,
           customerName: formData.customer_name,
           customerEmail: formData.customer_email,
           customerPhone: formData.customer_phone,
           reservationDate: formData.reservation_date,
           reservationTime: startTime,
           durationHours: duration,
-          numberOfPeople: formData.number_of_people,
           tableNumber: selectedTable.table_number,
           tableType: tableTypeName,
-          totalAmount: response.data.total_amount || totalPrice,
-          status: response.data.status || "pending_verification",
+          totalAmount: data.data.total_amount || totalPrice,
+          status: data.data.status || "pending_verification",
           orderItems: cartItems.map(item => ({
             menuName: item.menu.menu_name,
             quantity: item.quantity,
@@ -348,9 +344,15 @@ const ReservationPage: React.FC = () => {
 
         // Store in sessionStorage for payment page
         sessionStorage.setItem("pending_reservation", JSON.stringify({
-          ...reservationData,
-          booking_code: response.data.booking_code,
-          id: response.data.id,
+          customer_name: formData.customer_name,
+          customer_email: formData.customer_email,
+          customer_phone: formData.customer_phone,
+          table_id: selectedTable.id,
+          reservation_date: formData.reservation_date,
+          reservation_time: startTime,
+          duration_hours: duration,
+          booking_code: data.data.booking_code,
+          id: data.data.id,
           // Add complete order items with menu details for payment page
           order_items: cartItems.map(item => ({
             menu_id: item.menu.id,
@@ -362,10 +364,10 @@ const ReservationPage: React.FC = () => {
         }));
 
         // Navigate to payment page with booking code
-        navigate(`/payment/${response.data.booking_code}`);
+        navigate(`/payment/${data.data.booking_code}`);
       } else {
         // Handle API error
-        setErrors({ submit: response.error || "Gagal membuat reservasi. Silakan coba lagi." });
+        setErrors({ submit: data.error || "Gagal membuat reservasi. Silakan coba lagi." });
       }
     } catch (error: any) {
       console.error("Error creating reservation:", error);
@@ -476,25 +478,6 @@ const ReservationPage: React.FC = () => {
                       <p className="mt-1 text-sm text-error-500">{errors.reservation_date}</p>
                     )}
                   </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Jumlah Orang <span className="text-error-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="number_of_people"
-                      value={formData.number_of_people}
-                      onChange={handleInputChange}
-                      min="1"
-                      max="20"
-                      className={`w-full rounded-lg border ${errors.number_of_people ? "border-error-500" : "border-gray-200"
-                        } bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white`}
-                    />
-                    {errors.number_of_people && (
-                      <p className="mt-1 text-sm text-error-500">{errors.number_of_people}</p>
-                    )}
-                  </div>
                 </div>
 
                 {/* Time Selection */}
@@ -559,56 +542,6 @@ const ReservationPage: React.FC = () => {
                   </p>
                 )}
 
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Tipe Meja <span className="text-error-500">*</span>
-                  </label>
-                  {loadingTableTypes ? (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-gray-500">Memuat tipe meja...</p>
-                    </div>
-                  ) : tableTypes.length > 0 ? (
-                    <div className={`grid gap-3 ${tableTypes.length === 3 ? 'sm:grid-cols-3' : tableTypes.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
-                      {tableTypes.map((type) => (
-                        <button
-                          key={type.id}
-                          type="button"
-                          onClick={() => handleTableTypeChange(type.id)}
-                          className={`rounded-lg border-2 p-4 text-left transition ${formData.table_type_id === type.id
-                            ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                            : "border-gray-200 bg-white hover:border-brand-300 dark:border-gray-800 dark:bg-gray-dark"
-                            }`}
-                        >
-                          <div className="font-medium text-gray-900 dark:text-white">{type.type_name}</div>
-                          {type.description && (
-                            <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                              {type.description}
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 rounded-lg bg-gray-50 dark:bg-gray-800">
-                      <p className="text-sm text-gray-500">Tidak ada tipe meja tersedia</p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Catatan Khusus (Opsional)
-                  </label>
-                  <textarea
-                    name="special_notes"
-                    value={formData.special_notes}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-dark dark:text-white"
-                    placeholder="Tambahkan catatan khusus jika ada..."
-                  />
-                </div>
-
                 <Button
                   onClick={checkTableAvailability}
                   className="w-full"
@@ -624,23 +557,8 @@ const ReservationPage: React.FC = () => {
               <Card>
                 <CardTitle>Pilih Meja</CardTitle>
                 <div className="mt-4">
-                  {/* Area Tabs */}
-                  <AreaTabs
-                    activeArea={selectedArea}
-                    onAreaChange={(area) => {
-                      setSelectedArea(area);
-                      setSelectedTable(null); // Reset selection when changing area
-                    }}
-                    availableCounts={{
-                      indoor: availableTables.filter(t => t.table_number.startsWith('A') || t.table_number.startsWith('B') || t.table_number.startsWith('C') || t.table_number.startsWith('D')).length,
-                      semi_outdoor: availableTables.filter(t => t.table_number.startsWith('S')).length,
-                      outdoor: availableTables.filter(t => t.table_number.startsWith('O')).length,
-                    }}
-                  />
-
-                  {/* Visual Layout */}
-                  <TableLayoutViewer
-                    layout={getLayoutByArea(selectedArea)}
+                  {/* Dynamic Table Layout */}
+                  <DynamicTableLayout
                     tables={availableTables}
                     selectedTableId={selectedTable?.id || null}
                     onTableSelect={handleTableSelection}
@@ -665,6 +583,162 @@ const ReservationPage: React.FC = () => {
                             clipRule="evenodd"
                           />
                         </svg>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Information & Upload - Show after table selection */}
+                  {selectedTable && (
+                    <div className="mt-6 space-y-6">
+                      {/* Bank Account Info */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                          Informasi Transfer
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
+                            <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                              Bank:
+                            </div>
+                            <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                              Bank Central Asia (BCA)
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
+                            <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                              Nomor Rekening:
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                1234567890
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText("1234567890");
+                                  alert("Nomor rekening berhasil disalin!");
+                                }}
+                                className="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600"
+                              >
+                                Salin
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
+                            <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                              Atas Nama:
+                            </div>
+                            <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                              PT Ruang Dugamasa Indonesia
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg bg-warning-50 p-4 dark:bg-warning-900/20">
+                            <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                              Total yang Harus Dibayar:
+                            </div>
+                            <div className="text-3xl font-bold text-warning-600 dark:text-warning-400">
+                              {formatCurrency(totalPrice)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Payment Instructions */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                          Instruksi Pembayaran
+                        </h3>
+                        <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                          <div className="flex gap-3">
+                            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                              1
+                            </div>
+                            <div>
+                              Transfer sejumlah <strong className="text-gray-900 dark:text-white">{formatCurrency(totalPrice)}</strong> ke rekening yang tertera di atas
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                              2
+                            </div>
+                            <div>
+                              Setelah transfer, simpan bukti pembayaran dalam format gambar (JPG/PNG/WEBP)
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                              3
+                            </div>
+                            <div>
+                              Upload bukti pembayaran melalui form di bawah ini
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                              4
+                            </div>
+                            <div>
+                              Tunggu verifikasi dari admin (maksimal 1x24 jam)
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Upload Bukti Pembayaran */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                          Upload Bukti Pembayaran
+                        </h3>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Bukti Transfer <span className="text-error-500">*</span>
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePaymentProofChange}
+                              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                            />
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                              Format: JPG, PNG, WEBP. Maksimal 2MB
+                            </p>
+                            {errors.payment_proof && (
+                              <p className="mt-1 text-sm text-error-500">{errors.payment_proof}</p>
+                            )}
+                          </div>
+
+                          {/* Preview */}
+                          {paymentProofPreview && (
+                            <div className="mt-4">
+                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Preview:
+                              </p>
+                              <div className="relative inline-block">
+                                <img
+                                  src={paymentProofPreview}
+                                  alt="Payment proof preview"
+                                  className="max-w-sm rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setPaymentProof(null);
+                                    setPaymentProofPreview(null);
+                                  }}
+                                  className="absolute right-2 top-2 rounded-full bg-error-500 p-2 text-white hover:bg-error-600"
+                                >
+                                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -701,23 +775,42 @@ const ReservationPage: React.FC = () => {
             <Card>
               <CardTitle>Ringkasan Pesanan</CardTitle>
               <div className="mt-4 space-y-3">
-                {cartItems.map((item) => (
-                  <div key={item.menu.id} className="flex items-start justify-between text-sm">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 dark:text-white">{item.menu.menu_name}</div>
-                      <div className="text-gray-600 dark:text-gray-400">x{item.quantity}</div>
-                    </div>
-                    <div className="font-medium text-gray-900 dark:text-white">
-                      {formatCurrency(item.menu.price * item.quantity)}
-                    </div>
+                {cartItems.length === 0 ? (
+                  <div className="rounded-lg bg-yellow-50 dark:bg-yellow-900/20 p-4 text-center">
+                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                      Keranjang pesanan kosong
+                    </p>
+                    <p className="mt-1 text-xs text-yellow-600 dark:text-yellow-300">
+                      Silakan pilih menu terlebih dahulu di halaman Menu
+                    </p>
+                    <button
+                      onClick={() => navigate('/menu')}
+                      className="mt-3 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                    >
+                      Pilih Menu →
+                    </button>
                   </div>
-                ))}
-                <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div className="font-semibold text-gray-900 dark:text-white">Total</div>
-                    <div className="text-xl font-bold text-brand-500">{formatCurrency(totalPrice)}</div>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    {cartItems.map((item) => (
+                      <div key={item.menu.id} className="flex items-start justify-between text-sm">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 dark:text-white">{item.menu.menu_name}</div>
+                          <div className="text-gray-600 dark:text-gray-400">x{item.quantity}</div>
+                        </div>
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {formatCurrency(item.menu.price * item.quantity)}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div className="font-semibold text-gray-900 dark:text-white">Total</div>
+                        <div className="text-xl font-bold text-brand-500">{formatCurrency(totalPrice)}</div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </Card>
 

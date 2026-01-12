@@ -62,6 +62,11 @@ export interface Table {
   table_number: string;
   table_type: TableTypeDetail;
   capacity: number;
+  floor: number;
+  position_x: number;
+  position_y: number;
+  orientation: "horizontal" | "vertical";
+  is_available_for_booking?: boolean;
   status: TableStatus;
   created_at: string;
   updated_at: string;
@@ -99,9 +104,7 @@ export interface Reservation {
   // Reservation Details
   reservation_date: string;
   reservation_time: string;
-  number_of_people: number;
   duration_hours: number;
-  special_notes?: string;
 
   // Table Assignment
   table_id?: number;
@@ -168,11 +171,8 @@ export interface ReservationFormData {
   customer_phone: string;
   reservation_date: string;
   reservation_time: string;
-  number_of_people: number;
   duration_hours: number;
   table_id: number;
-  special_notes?: string;
-  table_type?: string;
   order_items: {
     menu_id: number;
     quantity: number;
@@ -193,6 +193,10 @@ export interface TableFormData {
   table_type_id: number;
   capacity: number;
   status?: TableStatus;
+  floor?: number;
+  position_x?: number;
+  position_y?: number;
+  orientation?: "horizontal" | "vertical";
 }
 
 // Cart Types

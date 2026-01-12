@@ -1,25 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, LayoutGrid, List } from "lucide-react";
 import { tableApi } from "../../services/api";
-import { Table, TableFormData, TableTypeDetail, AreaType } from "../../types";
+import { Table, TableFormData, TableTypeDetail } from "../../types";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Button from "../../components/ui/button/Button";
 import DataTableOne, { ColumnConfig } from "../../components/tables/DataTables/TableOne/DataTableOne";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { Modal } from "../../components/ui/modal";
-import AreaTabs from "../../components/reservation/AreaTabs";
-import AdminTableLayoutViewer from "../../components/admin/AdminTableLayoutViewer";
-import { getLayoutByArea } from "../../config/tableLayoutConfig";
+import TableLayoutEditor from "../../components/tables/TableLayoutEditor";
 
 export default function ManageTable() {
     const [tables, setTables] = useState<Table[]>([]);
     const [tableTypes, setTableTypes] = useState<TableTypeDetail[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedArea, setSelectedArea] = useState<AreaType>('indoor');
 
-    // Edit Modal State
+    // View State
+    const [activeTab, setActiveTab] = useState<'list' | 'layout'>('list');
+    const [selectedFloor, setSelectedFloor] = useState<number>(1);
+
+    // Edit Modal State (Generic for List & Layout)
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingTable, setEditingTable] = useState<Table | null>(null);
     const [editFormData, setEditFormData] = useState<TableFormData>({
@@ -27,7 +28,17 @@ export default function ManageTable() {
         table_type_id: 1,
         capacity: 2,
         status: "available",
+        floor: 1,
+        position_x: -1,
+        position_y: -1,
+        orientation: "horizontal"
     });
+
+    // Assign/Create Modal for Layout
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedSlot, setSelectedSlot] = useState<{ x: number, y: number } | null>(null);
+    const [assignTab, setAssignTab] = useState<'new' | 'existing'>('new');
+    const [selectedExistingTableId, setSelectedExistingTableId] = useState<string>('');
 
     // Confirmation Modal State
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -68,45 +79,40 @@ export default function ManageTable() {
         }
     };
 
-    // Handle assign table from layout
-    const handleAssignTable = async (position: any, tableNumber: string) => {
-        try {
-            // Auto-fill capacity based on table number
-            let capacity = 2;
-            if (tableNumber.startsWith('A')) capacity = 2;
-            else if (tableNumber.startsWith('B')) capacity = 4;
-            else if (tableNumber.startsWith('C')) capacity = 6;
-            else if (tableNumber.startsWith('D')) capacity = 8;
-            else if (tableNumber.startsWith('S1') || tableNumber.startsWith('S2') || tableNumber.startsWith('S3')) capacity = 2;
-            else if (tableNumber.startsWith('S4') || tableNumber.startsWith('S5') || tableNumber.startsWith('S6')) capacity = 4;
-            else if (tableNumber.startsWith('S7') || tableNumber.startsWith('S8') || tableNumber.startsWith('S9')) capacity = 6;
-            else if (tableNumber.startsWith('O')) capacity = 4;
+    // Filtered tables for current floor
+    const floorTables = useMemo(() => {
+        return tables.filter(t => t.floor === selectedFloor && t.position_x !== -1 && t.position_x !== null && t.position_x !== undefined);
+    }, [tables, selectedFloor]);
 
-            // Determine table type based on area
-            let tableTypeId = 1; // default indoor
-            if (selectedArea === 'semi_outdoor') tableTypeId = 2;
-            else if (selectedArea === 'outdoor') tableTypeId = 3;
+    // Unassigned tables (position -1)
+    const unassignedTables = useMemo(() => {
+        return tables.filter(t => t.position_x === -1 || t.position_x === null || t.position_x === undefined);
+    }, [tables]);
 
-            const formData: TableFormData = {
-                table_number: tableNumber,
-                table_type_id: tableTypeId,
-                capacity: capacity,
+    // HANDLERS
+
+    const handleSlotClick = (x: number, y: number, currentTable?: Table) => {
+        if (currentTable) {
+            // Edit existing table at this position
+            handleEditTable(currentTable);
+        } else {
+            // Assign new or existing table to empty slot
+            setSelectedSlot({ x, y });
+            // Default select first available type
+            setEditFormData({
+                table_number: "",
+                table_type_id: tableTypes[0]?.id || 1,
+                capacity: 2,
                 status: "available",
-            };
-
-            const response = await tableApi.createTable(formData);
-            if (response.success) {
-                await fetchTables();
-            } else {
-                setError(response.error || "Gagal menambahkan meja");
-            }
-        } catch (err) {
-            console.error("Assign error:", err);
-            setError("Gagal menambahkan meja");
+                floor: selectedFloor,
+                position_x: x,
+                position_y: y,
+                orientation: "horizontal"
+            });
+            setShowAssignModal(true);
         }
     };
 
-    // Handle edit table
     const handleEditTable = (table: Table) => {
         setEditingTable(table);
         setEditFormData({
@@ -114,30 +120,69 @@ export default function ManageTable() {
             table_type_id: table.table_type.id,
             capacity: table.capacity,
             status: table.status,
+            floor: table.floor,
+            position_x: table.position_x,
+            position_y: table.position_y,
+            orientation: table.orientation
         });
         setShowEditModal(true);
     };
 
-    const handleUpdateTable = async (e: React.FormEvent) => {
+    const handleCreateOrUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editingTable) return;
-
         try {
-            const response = await tableApi.updateTable(editingTable.id.toString(), editFormData);
-            if (response.success) {
-                await fetchTables();
-                setShowEditModal(false);
-                setEditingTable(null);
+            if (editingTable) {
+                const response = await tableApi.updateTable(editingTable.id.toString(), editFormData);
+                if (response.success) {
+                    await fetchTables();
+                    setShowEditModal(false);
+                    setEditingTable(null);
+                }
             } else {
-                setError(response.error || "Gagal mengupdate meja");
+                const response = await tableApi.createTable(editFormData);
+                if (response.success) {
+                    await fetchTables();
+                    setShowEditModal(false); // Used for List View Create
+                }
             }
         } catch (err) {
-            console.error("Update error:", err);
-            setError("Gagal mengupdate meja");
+            console.error("Submit error:", err);
+            setError("Gagal menyimpan data meja");
         }
     };
 
-    // Handle delete table
+    const handleAssignSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedSlot) return;
+
+        try {
+            if (assignTab === 'new') {
+                const response = await tableApi.createTable({
+                    ...editFormData,
+                    floor: selectedFloor,
+                    position_x: selectedSlot.x,
+                    position_y: selectedSlot.y
+                });
+                if (response.success) await fetchTables();
+            } else {
+                if (!selectedExistingTableId) return;
+                const response = await tableApi.updateTablePosition(
+                    selectedExistingTableId,
+                    selectedFloor,
+                    selectedSlot.x,
+                    selectedSlot.y,
+                    "horizontal"
+                );
+                if (response.success) await fetchTables();
+            }
+            setShowAssignModal(false);
+            setEditFormData(prev => ({ ...prev, table_number: "" })); // Reset form
+        } catch (err) {
+            console.error("Assign error:", err);
+            setError("Gagal menempatkan meja");
+        }
+    };
+
     const confirmDelete = (table: Table) => {
         setTableToDelete(table);
         setShowDeleteModal(true);
@@ -145,7 +190,6 @@ export default function ManageTable() {
 
     const handleDelete = async () => {
         if (!tableToDelete) return;
-
         try {
             setDeleting(true);
             const response = await tableApi.deleteTable(tableToDelete.id.toString());
@@ -153,398 +197,314 @@ export default function ManageTable() {
                 await fetchTables();
                 setShowDeleteModal(false);
                 setTableToDelete(null);
-            } else {
-                setError("Gagal menghapus meja");
             }
         } catch (err) {
-            console.error("Delete error:", err);
             setError("Gagal menghapus meja");
         } finally {
             setDeleting(false);
         }
     };
 
-    const getTypeBadge = (type: string) => {
-        const badges = {
-            indoor: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-            outdoor: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-            semi_outdoor: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-        };
-        return badges[type as keyof typeof badges] || badges.indoor;
+    const handleUnassignPosition = async () => {
+        if (!editingTable) return;
+        try {
+            const response = await tableApi.updateTablePosition(
+                editingTable.id.toString(),
+                editingTable.floor,
+                -1,
+                -1
+            );
+            if (response.success) {
+                await fetchTables();
+                setShowEditModal(false);
+            }
+        } catch (err) {
+            setError("Gagal melepaskan posisi meja");
+        }
     };
 
+    // Columns for List View
     const columns: ColumnConfig[] = useMemo(() => [
+        { key: "table_number", label: "Nomor Meja", sortable: true },
         {
-            key: "id",
-            label: "ID",
+            key: "floor",
+            label: "Lokasi",
             sortable: true,
+            render: (_val, row: Table) => row.position_x !== -1 ? `Lantai ${row.floor} (${row.position_x},${row.position_y})` : "Belum ditempatkan"
         },
-        {
-            key: "table_number",
-            label: "Nomor Meja",
-            sortable: true,
-            render: (val) => (
-                <span className="font-normal dark:text-gray-400/90 text-gray-800 text-theme-sm">
-                    Meja {val}
-                </span>
-            )
-        },
-        {
-            key: "table_type.type_name",
-            label: "Tipe",
-            sortable: true,
-            render: (val) => (
-                <span className={`px-2.5 py-1 text-xs font-medium rounded-full capitalize ${getTypeBadge(String(val || "").toLowerCase())}`}>
-                    {val || "-"}
-                </span>
-            )
-        },
-        {
-            key: "capacity",
-            label: "Kapasitas",
-            sortable: true,
-            render: (val) => (
-                <span className="font-normal dark:text-gray-400/90 text-gray-800 text-theme-sm">
-                    {val} orang
-                </span>
-            )
-        },
+        { key: "capacity", label: "Kapasitas", sortable: true, render: (val) => `${val} Orang` },
         {
             key: "status",
             label: "Status",
             sortable: true,
-            render: (val) => {
-                const statusConfig = {
-                    available: { label: "Tersedia", class: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-                    reserved: { label: "Direservasi", class: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-                    inactive: { label: "Tidak Aktif", class: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
-                };
-                const config = statusConfig[val as keyof typeof statusConfig] || statusConfig.available;
-                return (
-                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${config.class}`}>
-                        {config.label}
-                    </span>
-                );
-            }
+            render: (val) => (
+                <span className={`px-2.5 py-1 text-xs rounded-full ${val === 'available' ? 'bg-green-100 text-green-800' :
+                    val === 'reserved' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                    }`}>
+                    {val === 'available' ? 'Tersedia' : val === 'reserved' ? 'Direservasi' : 'Tidak Aktif'}
+                </span>
+            )
         },
         {
             key: "actions",
-            label: "Actions",
+            label: "Aksi",
             sortable: false,
             render: (_val, row) => (
-                <div className="flex items-center gap-1.5">
-                    <button
-                        onClick={() => handleEditTable(row as Table)}
-                        className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title="Edit"
-                    >
-                        <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => confirmDelete(row as Table)}
-                        className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Hapus"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
+                <div className="flex gap-2">
+                    <button onClick={() => handleEditTable(row as Table)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit size={16} /></button>
+                    <button onClick={() => confirmDelete(row as Table)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
                 </div>
             )
         }
     ], []);
 
-    // Calculate statistics
+    if (loading) return <div className="p-10 text-center">Memuat data...</div>;
+
+    // Statistics
     const totalTables = tables.length;
     const availableTables = tables.filter(t => t.status === "available").length;
-    const unavailableTables = tables.filter(t => t.status !== "available").length;
-    const totalCapacity = tables.reduce((sum, t) => sum + t.capacity, 0);
-
-    // Get tables for selected area
-    const tablesForArea = tables.filter(t => {
-        const tableNum = t.table_number;
-        if (selectedArea === 'indoor') {
-            return tableNum.startsWith('A') || tableNum.startsWith('B') || 
-                   tableNum.startsWith('C') || tableNum.startsWith('D');
-        } else if (selectedArea === 'semi_outdoor') {
-            return tableNum.startsWith('S');
-        } else if (selectedArea === 'outdoor') {
-            return tableNum.startsWith('O');
-        }
-        return false;
-    });
-
-    if (loading) {
-        return (
-            <div className="space-y-5 sm:space-y-6">
-                <PageMeta
-                    title="Kelola Meja | Reservasi Ruang Dugamasa"
-                    description="Kelola meja restoran dan ketersediaannya"
-                />
-                <PageBreadcrumb pageTitle="Kelola Meja" />
-                <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                        <div className="animate-spin h-12 w-12 border-4 border-brand-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-gray-600 dark:text-gray-400">Memuat data...</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    const reservedTables = tables.filter(t => t.status !== "available").length;
 
     return (
         <>
-            <PageMeta
-                title="Kelola Meja | Reservasi Ruang Dugamasa"
-                description="Kelola meja restoran dan ketersediaannya"
-            />
+            <PageMeta title="Kelola Meja" description="Manajemen layout dan data meja restoran" />
             <PageBreadcrumb pageTitle="Kelola Meja" />
 
-            <div className="space-y-5 sm:space-y-6">
-                {/* Error Message */}
-                {error && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-                        {error}
-                    </div>
-                )}
-
-                {/* Summary Statistics Cards */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {/* Total Tables Card */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    Total Meja
-                                </p>
-                                <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                                    {totalTables}
-                                </p>
-                            </div>
-                            <div className="rounded-lg bg-blue-50 p-2 dark:bg-blue-900/20">
-                                <svg
-                                    className="h-5 w-5 text-blue-600 dark:text-blue-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Available Tables Card */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    Tersedia
-                                </p>
-                                <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
-                                    {availableTables}
-                                </p>
-                            </div>
-                            <div className="rounded-lg bg-green-50 p-2 dark:bg-green-900/20">
-                                <svg
-                                    className="h-5 w-5 text-green-600 dark:text-green-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Unavailable Tables Card */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    Tidak Tersedia
-                                </p>
-                                <p className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
-                                    {unavailableTables}
-                                </p>
-                            </div>
-                            <div className="rounded-lg bg-red-50 p-2 dark:bg-red-900/20">
-                                <svg
-                                    className="h-5 w-5 text-red-600 dark:text-red-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Total Capacity Card */}
-                    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                    Total Kapasitas
-                                </p>
-                                <p className="mt-1 text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                    {totalCapacity}
-                                </p>
-                            </div>
-                            <div className="rounded-lg bg-purple-50 p-2 dark:bg-purple-900/20">
-                                <svg
-                                    className="h-5 w-5 text-purple-600 dark:text-purple-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                                    />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+                    <div className="text-gray-500 text-sm">Total Meja</div>
+                    <div className="text-2xl font-bold">{totalTables}</div>
                 </div>
-
-                {/* Visual Layout Manager */}
-                <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        Layout Meja
-                    </h2>
-
-                    {/* Area Tabs */}
-                    <AreaTabs
-                        activeArea={selectedArea}
-                        onAreaChange={setSelectedArea}
-                    />
-
-                    {/* Visual Layout */}
-                    <AdminTableLayoutViewer
-                        layout={getLayoutByArea(selectedArea)}
-                        tables={tablesForArea}
-                        onAssignTable={handleAssignTable}
-                        onEditTable={handleEditTable}
-                        onDeleteTable={confirmDelete}
-                    />
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+                    <div className="text-gray-500 text-sm">Tersedia</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{availableTables}</div>
                 </div>
-
-                {/* Data Table */}
-                <DataTableOne
-                    title="Daftar Semua Meja"
-                    data={tables}
-                    columns={columns}
-                    defaultItemsPerPage={10}
-                    itemsPerPageOptions={[5, 10, 15, 20]}
-                    defaultSortKey="id"
-                    defaultSortOrder="asc"
-                    searchable={true}
-                    searchPlaceholder="Cari nomor meja, tipe, status..."
-                />
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+                    <div className="text-gray-500 text-sm">Terisi / Non-Aktif</div>
+                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">{reservedTables}</div>
+                </div>
             </div>
 
-            {/* Edit Modal */}
+            {/* Tabs Navigation */}
+            <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+                <nav className="-mb-px flex gap-6">
+                    <button
+                        onClick={() => setActiveTab('list')}
+                        className={`py-4 px-1 inline-flex items-center gap-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'list'
+                            ? 'border-brand-500 text-brand-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        <List size={18} />
+                        Data Meja
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('layout')}
+                        className={`py-4 px-1 inline-flex items-center gap-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'layout'
+                            ? 'border-brand-500 text-brand-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                    >
+                        <LayoutGrid size={18} />
+                        Kelola Posisi
+                    </button>
+                </nav>
+            </div>
+
+            {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+
+            {activeTab === 'list' ? (
+                <div className="space-y-6">
+                    <DataTableOne
+                        title="Daftar Semua Meja"
+                        data={tables}
+                        columns={columns}
+                        searchable={true}
+                        defaultItemsPerPage={10}
+                        actionButton={
+                            <Button size="sm" onClick={() => {
+                                setEditingTable(null);
+                                setEditFormData({
+                                    table_number: "", table_type_id: 1, capacity: 2, status: "available",
+                                    floor: 1, position_x: -1, position_y: -1, orientation: "horizontal"
+                                });
+                                setShowEditModal(true);
+                            }}>
+                                <Plus className="w-4 h-4 mr-2" /> Tambah Meja
+                            </Button>
+                        }
+                    />
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    {/* Floor Selector */}
+                    <div className="flex gap-2 mb-4">
+                        {[1, 2, 3].map(floor => (
+                            <button
+                                key={floor}
+                                onClick={() => setSelectedFloor(floor)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedFloor === floor
+                                    ? 'bg-brand-600 text-white shadow-md'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300'
+                                    }`}
+                            >
+                                Lantai {floor}
+                            </button>
+                        ))}
+                    </div>
+
+                    <TableLayoutEditor
+                        floor={selectedFloor}
+                        tables={floorTables}
+                        onSlotClick={handleSlotClick}
+                    />
+
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg text-yellow-800 dark:text-yellow-200 text-sm">
+                        * Terdapat {unassignedTables.length} meja yang belum ditempatkan pada layout. Anda dapat memilihnya saat mengklik grid kosong.
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Create/Edit General */}
             <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} className="max-w-lg">
-                <form onSubmit={handleUpdateTable}>
-                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                            Edit Meja {editingTable?.table_number}
-                        </h3>
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                        {editingTable ? `Edit Meja ${editingTable.table_number}` : "Tambah Meja Baru"}
+                    </h3>
+                </div>
+                <form onSubmit={handleCreateOrUpdate} className="p-6 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Nomor Meja</label>
+                        <input type="text" required value={editFormData.table_number}
+                            onChange={e => setEditFormData({ ...editFormData, table_number: e.target.value })}
+                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                            disabled={!!editingTable}
+                        />
                     </div>
-
-                    <div className="px-6 py-4 space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Nomor Meja
-                            </label>
-                            <input
-                                type="text"
-                                value={editFormData.table_number}
-                                disabled
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-800 dark:text-white cursor-not-allowed"
-                            />
-                            <p className="mt-1 text-xs text-gray-500">Nomor meja tidak dapat diubah</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Tipe Meja <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={editFormData.table_type_id}
-                                onChange={(e) => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                            >
-                                {tableTypes.map((type) => (
-                                    <option key={type.id} value={type.id}>
-                                        {type.type_name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Kapasitas (orang) <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={editFormData.capacity}
-                                onChange={(e) => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
-                                min="1"
-                                max="20"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Status <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={editFormData.status || "available"}
-                                onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value as "available" | "reserved" | "inactive" })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                            >
-                                <option value="available">Tersedia</option>
-                                <option value="reserved">Direservasi</option>
-                                <option value="inactive">Tidak Aktif</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3">
-                        <Button
-                            type="button"
-                            onClick={() => setShowEditModal(false)}
-                            variant="outline"
+                    <div>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tipe</label>
+                        <select
+                            value={editFormData.table_type_id}
+                            onChange={e => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
+                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                         >
-                            Batal
-                        </Button>
-                        <Button type="submit" variant="primary">
-                            Simpan Perubahan
-                        </Button>
+                            {tableTypes.map(t => <option key={t.id} value={t.id}>{t.type_name}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Kapasitas</label>
+                        <input type="number" min="1" required value={editFormData.capacity}
+                            onChange={e => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
+                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Status</label>
+                        <select
+                            value={editFormData.status}
+                            onChange={e => setEditFormData({ ...editFormData, status: e.target.value as any })}
+                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                        >
+                            <option value="available">Tersedia</option>
+                            <option value="reserved">Direservasi</option>
+                            <option value="inactive">Tidak Aktif</option>
+                        </select>
+                    </div>
+
+                    {/* Position Info & Unassign Button */}
+                    {editingTable && editingTable.position_x !== -1 && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex justify-between items-center text-sm mb-4">
+                            <span className="text-blue-800 dark:text-blue-200">
+                                <b>Lokasi Saat Ini:</b> Lantai {editingTable.floor} (Posisi {editingTable.position_x}, {editingTable.position_y})
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleUnassignPosition}
+                                className="text-red-600 hover:text-red-800 text-xs font-bold underline px-2"
+                            >
+                                Lepaskan dari Layout
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end gap-2 mt-4 pt-4 border-t dark:border-gray-800">
+                        <Button type="button" variant="outline" onClick={() => setShowEditModal(false)}>Batal</Button>
+                        <Button type="submit">Simpan</Button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Modal Assign to Slot */}
+            <Modal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} className="max-w-lg">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                        Atur Meja di Lantai {selectedFloor} (Posisi {selectedSlot?.x}, {selectedSlot?.y})
+                    </h3>
+                </div>
+                <div className="p-6">
+                    {/* Internal Tabs for Assign Modal */}
+                    <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+                        <button onClick={() => setAssignTab('new')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${assignTab === 'new' ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Buat Meja Baru</button>
+                        <button onClick={() => setAssignTab('existing')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${assignTab === 'existing' ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Pilih dari Daftar</button>
+                    </div>
+
+                    <form onSubmit={handleAssignSubmit} className="space-y-4">
+                        {assignTab === 'new' ? (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Nomor Meja</label>
+                                    <input type="text" required value={editFormData.table_number}
+                                        onChange={e => setEditFormData({ ...editFormData, table_number: e.target.value })}
+                                        className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        placeholder="Contoh: A01"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tipe</label>
+                                        <select
+                                            value={editFormData.table_type_id}
+                                            onChange={e => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
+                                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        >
+                                            {tableTypes.map(t => <option key={t.id} value={t.id}>{t.type_name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Kapasitas</label>
+                                        <input type="number" min="1" required value={editFormData.capacity}
+                                            onChange={e => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
+                                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div>
+                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Pilih Meja yang Belum Ditempatkan</label>
+                                <select
+                                    value={selectedExistingTableId}
+                                    onChange={e => setSelectedExistingTableId(e.target.value)}
+                                    className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                    required
+                                >
+                                    <option value="">-- Pilih Meja --</option>
+                                    {unassignedTables.map(t => (
+                                        <option key={t.id} value={t.id}>{t.table_number} (Kap: {t.capacity})</option>
+                                    ))}
+                                </select>
+                                {unassignedTables.length === 0 && <p className="text-sm text-yellow-600 mt-2">Tidak ada meja yang belum ditempatkan.</p>}
+                            </div>
+                        )}
+
+                        <div className="flex justify-end gap-2 mt-6 pt-4 border-t dark:border-gray-800">
+                            <Button type="button" variant="outline" onClick={() => setShowAssignModal(false)}>Batal</Button>
+                            <Button type="submit">Tempatkan Meja</Button>
+                        </div>
+                    </form>
+                </div>
             </Modal>
 
             {/* Delete Confirmation Modal */}
@@ -553,10 +513,9 @@ export default function ManageTable() {
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={handleDelete}
                 title="Hapus Meja"
-                message={`Apakah Anda yakin ingin menghapus meja ${tableToDelete?.table_number}? Tindakan ini tidak dapat dibatalkan.`}
+                message="Yakin ingin menghapus meja ini?"
                 variant="danger"
                 isLoading={deleting}
-                confirmText="Hapus"
             />
         </>
     );

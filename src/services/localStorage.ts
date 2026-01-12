@@ -7,7 +7,6 @@ export interface ReservationHistory {
   reservationDate: string;
   reservationTime: string;
   durationHours: number;
-  numberOfPeople: number;
   tableNumber?: string;
   tableType?: string;
   totalAmount: number;

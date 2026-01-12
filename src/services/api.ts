@@ -187,10 +187,12 @@ export const tableApi = {
   getTables: async (params?: {
     type?: string;
     available_only?: boolean;
+    floor?: number;
   }): Promise<ApiResponse<Table[]>> => {
     const queryParams = new URLSearchParams();
     if (params?.type) queryParams.append("type", params.type);
     if (params?.available_only) queryParams.append("available_only", "true");
+    if (params?.floor) queryParams.append("floor", params.floor.toString());
 
     const response = await fetch(`${API_BASE_URL}/admin/tables?${queryParams}`, {
       headers: createHeaders(true),
@@ -236,6 +238,15 @@ export const tableApi = {
       headers: createHeaders(true),
     });
     return handleResponse<void>(response);
+  },
+
+  updateTablePosition: async (id: string, floor: number, x: number, y: number, orientation?: "horizontal" | "vertical"): Promise<ApiResponse<Table>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/tables/${id}/position`, {
+      method: "PUT",
+      headers: createHeaders(true),
+      body: JSON.stringify({ floor, position_x: x, position_y: y, orientation }),
+    });
+    return handleResponse<Table>(response);
   },
 
   checkAvailability: async (
