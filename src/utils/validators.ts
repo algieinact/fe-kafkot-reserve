@@ -204,20 +204,9 @@ export const validateReservationForm = (
     }
   }
 
-  // Validate number of people
-  if (!data.number_of_people) {
-    errors.number_of_people = "Jumlah orang wajib diisi";
-  } else {
-    const peopleValidation = validateNumberOfPeople(data.number_of_people);
-    if (peopleValidation !== true) {
-      errors.number_of_people = peopleValidation;
-    }
-  }
 
-  // Validate table type
-  if (!data.table_type) {
-    errors.table_type = "Tipe meja wajib dipilih";
-  }
+
+
 
   // Validate order items
   if (!data.order_items || data.order_items.length === 0) {

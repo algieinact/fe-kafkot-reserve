@@ -34,7 +34,7 @@ const tableMapping: TableMapping[] = [
   { tableNumber: 'C1', capacity: 6, tableTypeId: 1, area: 'indoor' },
   { tableNumber: 'C2', capacity: 6, tableTypeId: 1, area: 'indoor' },
   { tableNumber: 'D1', capacity: 8, tableTypeId: 1, area: 'indoor' },
-  
+
   // Semi-Outdoor tables
   { tableNumber: 'S1', capacity: 2, tableTypeId: 2, area: 'semi_outdoor' },
   { tableNumber: 'S2', capacity: 2, tableTypeId: 2, area: 'semi_outdoor' },
@@ -45,7 +45,7 @@ const tableMapping: TableMapping[] = [
   { tableNumber: 'S7', capacity: 6, tableTypeId: 2, area: 'semi_outdoor' },
   { tableNumber: 'S8', capacity: 6, tableTypeId: 2, area: 'semi_outdoor' },
   { tableNumber: 'S9', capacity: 6, tableTypeId: 2, area: 'semi_outdoor' },
-  
+
   // Outdoor tables
   { tableNumber: 'O1', capacity: 4, tableTypeId: 3, area: 'outdoor' },
   { tableNumber: 'O2', capacity: 4, tableTypeId: 3, area: 'outdoor' },
@@ -69,16 +69,16 @@ export const getDummyAvailableTables = (
 ): Table[] => {
   // Filter tables by table type
   const tablesForType = tableMapping.filter(t => t.tableTypeId === tableTypeId);
-  
+
   // Randomly mark some tables as unavailable (30% chance)
   const unavailableIndices = new Set<number>();
   const unavailableCount = Math.floor(tablesForType.length * 0.3);
-  
+
   while (unavailableIndices.size < unavailableCount) {
     const randomIndex = Math.floor(Math.random() * tablesForType.length);
     unavailableIndices.add(randomIndex);
   }
-  
+
   // Create table objects
   return tablesForType.map((mapping, index) => ({
     id: index + 1 + (tableTypeId * 100), // Generate unique ID
@@ -88,6 +88,10 @@ export const getDummyAvailableTables = (
     status: unavailableIndices.has(index) ? 'reserved' : 'available',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    floor: 1, // Default floor
+    position_x: 0, // Default position
+    position_y: 0, // Default position
+    orientation: 'horizontal' // Default orientation
   } as Table));
 };
 
@@ -96,16 +100,16 @@ export const getDummyAvailableTables = (
  */
 export const getTablesForArea = (area: AreaType): Table[] => {
   const tablesForArea = tableMapping.filter(t => t.area === area);
-  
+
   // Randomly mark some tables as unavailable
   const unavailableIndices = new Set<number>();
   const unavailableCount = Math.floor(tablesForArea.length * 0.3);
-  
+
   while (unavailableIndices.size < unavailableCount) {
     const randomIndex = Math.floor(Math.random() * tablesForArea.length);
     unavailableIndices.add(randomIndex);
   }
-  
+
   return tablesForArea.map((mapping, index) => ({
     id: index + 1 + (mapping.tableTypeId * 100),
     table_number: mapping.tableNumber,
@@ -114,6 +118,10 @@ export const getTablesForArea = (area: AreaType): Table[] => {
     status: unavailableIndices.has(index) ? 'reserved' : 'available',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    floor: 1, // Default floor
+    position_x: 0, // Default position
+    position_y: 0, // Default position
+    orientation: 'horizontal' // Default orientation
   } as Table));
 };
 
@@ -123,7 +131,7 @@ export const getTablesForArea = (area: AreaType): Table[] => {
 export const getTableByNumber = (tableNumber: string): Table | null => {
   const mapping = tableMapping.find(t => t.tableNumber === tableNumber);
   if (!mapping) return null;
-  
+
   return {
     id: tableMapping.indexOf(mapping) + 1,
     table_number: mapping.tableNumber,
@@ -132,6 +140,10 @@ export const getTableByNumber = (tableNumber: string): Table | null => {
     status: 'available',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    floor: 1, // Default floor
+    position_x: 0, // Default position
+    position_y: 0, // Default position
+    orientation: 'horizontal' // Default orientation
   };
 };
 

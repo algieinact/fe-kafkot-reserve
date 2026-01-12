@@ -179,135 +179,270 @@ export const mockMenus: Menu[] = [
 // Mock Table Data
 export const mockTables: Table[] = [
   // Indoor Tables
-  { 
-    id: 1, 
-    table_number: "1", 
-    capacity: 2, 
-    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 1,
+    table_number: "A1",
+    capacity: 4,
+    table_type: {
+      id: 1,
+      type_name: "Indoor Standard",
+      description: "Meja standar untuk 4 orang di dalam ruangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 1,
+    position_x: 0,
+    position_y: 0,
+    orientation: "horizontal"
   },
-  { 
-    id: 2, 
-    table_number: "2", 
-    capacity: 2, 
-    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 2,
+    table_number: "A2",
+    capacity: 4,
+    table_type: {
+      id: 1,
+      type_name: "Indoor Standard",
+      description: "Meja standar untuk 4 orang di dalam ruangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 1,
+    position_x: 50,
+    position_y: 0,
+    orientation: "horizontal"
   },
-  { 
-    id: 3, 
-    table_number: "3", 
-    capacity: 4, 
-    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 3,
+    table_number: "A3",
+    capacity: 2,
+    table_type: {
+      id: 2,
+      type_name: "Indoor Small",
+      description: "Meja kecil untuk 2 orang",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 1,
+    position_x: 100,
+    position_y: 0,
+    orientation: "vertical"
   },
-  { 
-    id: 4, 
-    table_number: "4", 
-    capacity: 4, 
-    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 4,
+    table_number: "B1",
+    capacity: 6,
+    table_type: {
+      id: 3,
+      type_name: "Indoor Large",
+      description: "Meja besar untuk 6 orang",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 1,
+    position_x: 0,
+    position_y: 50,
+    orientation: "horizontal"
   },
-  { 
-    id: 5, 
-    table_number: "5", 
-    capacity: 6, 
-    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 5,
+    table_number: "B2",
+    capacity: 4,
+    table_type: {
+      id: 1,
+      type_name: "Indoor Standard",
+      description: "Meja standar untuk 4 orang di dalam ruangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 1,
+    position_x: 50,
+    position_y: 50,
+    orientation: "horizontal"
   },
-  { 
-    id: 6, 
-    table_number: "6", 
-    capacity: 8, 
-    table_type: { id: 1, type_name: "indoor", description: "Indoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 6,
+    table_number: "C1",
+    capacity: 8,
+    table_type: {
+      id: 4,
+      type_name: "VIP",
+      description: "Meja VIP untuk 8 orang",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 2,
+    position_x: 0,
+    position_y: 0,
+    orientation: "horizontal"
   },
-
-  // Semi-Outdoor Tables
-  { 
-    id: 7, 
-    table_number: "7", 
-    capacity: 2, 
-    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 7,
+    table_number: "O1",
+    capacity: 4,
+    table_type: {
+      id: 5,
+      type_name: "Outdoor Standard",
+      description: "Meja outdoor dengan pemandangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 3,
+    position_x: 0,
+    position_y: 0,
+    orientation: "horizontal"
   },
-  { 
-    id: 8, 
-    table_number: "8", 
-    capacity: 4, 
-    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 8,
+    table_number: "O2",
+    capacity: 4,
+    table_type: {
+      id: 5,
+      type_name: "Outdoor Standard",
+      description: "Meja outdoor dengan pemandangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 3,
+    position_x: 50,
+    position_y: 0,
+    orientation: "horizontal"
   },
-  { 
-    id: 9, 
-    table_number: "9", 
-    capacity: 4, 
-    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 9,
+    table_number: "O3",
+    capacity: 2,
+    table_type: {
+      id: 6,
+      type_name: "Outdoor Small",
+      description: "Meja outdoor kecil untuk pasangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 3,
+    position_x: 100,
+    position_y: 0,
+    orientation: "vertical"
   },
-  { 
-    id: 10, 
-    table_number: "10", 
-    capacity: 6, 
-    table_type: { id: 2, type_name: "semi_outdoor", description: "Semi-Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 10,
+    table_number: "A4",
+    capacity: 4,
+    table_type: {
+      id: 1,
+      type_name: "Indoor Standard",
+      description: "Meja standar untuk 4 orang di dalam ruangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 1,
+    position_x: 150,
+    position_y: 0,
+    orientation: "horizontal"
   },
-
-  // Outdoor Tables
-  { 
-    id: 11, 
-    table_number: "11", 
-    capacity: 2, 
-    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 11,
+    table_number: "B3",
+    capacity: 6,
+    table_type: {
+      id: 3,
+      type_name: "Indoor Large",
+      description: "Meja besar untuk 6 orang",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 1,
+    position_x: 100,
+    position_y: 50,
+    orientation: "horizontal"
   },
-  { 
-    id: 12, 
-    table_number: "12", 
-    capacity: 4, 
-    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 12,
+    table_number: "C2",
+    capacity: 8,
+    table_type: {
+      id: 4,
+      type_name: "VIP",
+      description: "Meja VIP untuk 8 orang",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 2,
+    position_x: 50,
+    position_y: 0,
+    orientation: "horizontal"
   },
-  { 
-    id: 13, 
-    table_number: "13", 
-    capacity: 4, 
-    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 13,
+    table_number: "O4",
+    capacity: 4,
+    table_type: {
+      id: 5,
+      type_name: "Outdoor Standard",
+      description: "Meja outdoor dengan pemandangan",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 3,
+    position_x: 0,
+    position_y: 50,
+    orientation: "horizontal"
   },
-  { 
-    id: 14, 
-    table_number: "14", 
-    capacity: 6, 
-    table_type: { id: 3, type_name: "outdoor", description: "Outdoor Table", created_at: "2024-01-01", updated_at: "2024-01-01" }, 
-    created_at: "2024-01-01", 
-    updated_at: "2024-01-01",
-    status: "available"
+  {
+    id: 14,
+    table_number: "O5",
+    capacity: 6,
+    table_type: {
+      id: 6,
+      type_name: "Outdoor Large", // Assuming type 6 covers large/small for outdoor based on previous pattern or just consistency
+      description: "Meja outdoor besar",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z"
+    },
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+    status: "available",
+    floor: 3,
+    position_x: 50,
+    position_y: 50,
+    orientation: "horizontal"
   },
 ];
-

@@ -248,9 +248,7 @@ const HistoryPage: React.FC = () => {
                         <span className="ml-2 text-gray-500">({reservation.tableType})</span>
                       )}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      {reservation.numberOfPeople} orang
-                    </p>
+
                   </div>
 
                   {/* Contact */}

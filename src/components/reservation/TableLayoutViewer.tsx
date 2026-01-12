@@ -90,7 +90,7 @@ const TableLayoutViewer: React.FC<TableLayoutViewerProps> = ({
                   position={position}
                   isSelected={isSelected}
                   isAvailable={isAvailable}
-                  onTableSelect={onTableSelect}
+                  onSelect={onTableSelect}
                   canvasWidth={layout.width}
                   canvasHeight={layout.height}
                 />

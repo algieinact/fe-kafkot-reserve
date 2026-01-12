@@ -208,16 +208,7 @@ export default function ManageReservation() {
                 </span>
             )
         },
-        {
-            key: "number_of_people",
-            label: "Jumlah Tamu",
-            sortable: true,
-            render: (val) => (
-                <span className="font-normal dark:text-gray-400/90 text-gray-800 text-theme-sm">
-                    {val} orang
-                </span>
-            )
-        },
+
         {
             key: "total_amount",
             label: "Total",
@@ -433,12 +424,7 @@ export default function ManageReservation() {
                                                 Meja {selectedReservation.table?.table_number || "-"}
                                             </p>
                                         </div>
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Jumlah Tamu:</span>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {selectedReservation.number_of_people} orang
-                                            </p>
-                                        </div>
+
                                         <div>
                                             <span className="text-sm text-gray-500 dark:text-gray-400">Status:</span>
                                             <p className="text-sm font-medium">
