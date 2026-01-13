@@ -20,6 +20,7 @@ import LoginPage from "./pages/Admin/LoginPage";
 import ManageMenu from "./pages/Admin/ManageMenu";
 import ManageTable from "./pages/Admin/ManageTable";
 import ManageReservation from "./pages/Admin/ManageReservation";
+import ManageBanner from "./pages/Admin/ManageBanner";
 
 export default function App() {
   return (
@@ -64,6 +65,14 @@ export default function App() {
                 element={
                   <RoleBasedRoute allowedRoles={["admin", "super_admin"]}>
                     <ManageTable />
+                  </RoleBasedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/banners"
+                element={
+                  <RoleBasedRoute allowedRoles={["admin", "super_admin"]}>
+                    <ManageBanner />
                   </RoleBasedRoute>
                 }
               />

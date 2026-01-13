@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { Menu, MenuCategory } from "../../types";
 import { useCart } from "../../context/CartContext";
 import { formatCurrency, formatMenuCategory } from "../../utils/formatters";
-import { Card } from "../../components/ui/card";
+import MenuCard from "../../components/ui/card/MenuCard";
 import Button from "../../components/ui/button/Button";
 import { menuApi } from "../../services/api";
 
@@ -32,6 +32,13 @@ const MenuPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showCartModal, setShowCartModal] = useState(false);
+
+  // Variant selection bottom sheet state
+  const [showVariantSheet, setShowVariantSheet] = useState(false);
+  const [selectedMenuForVariant, setSelectedMenuForVariant] = useState<Menu | null>(null);
+  const [selectedSugar, setSelectedSugar] = useState<"less" | "normal" | "plus">("normal");
+  const [selectedIce, setSelectedIce] = useState<"less" | "normal" | "plus">("normal");
+  const [variantQuantity, setVariantQuantity] = useState(1);
 
   // API state
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -131,7 +138,27 @@ const MenuPage: React.FC = () => {
   console.log("filteredMenus.length:", filteredMenus.length);
 
   const handleAddToCart = (menu: Menu) => {
-    addItem(menu, 1);
+    // Open variant selection bottom sheet
+    setSelectedMenuForVariant(menu);
+    setSelectedSugar("normal");
+    setSelectedIce("normal");
+    setVariantQuantity(1);
+    setShowVariantSheet(true);
+  };
+
+  const handleConfirmVariant = () => {
+    if (!selectedMenuForVariant) return;
+    
+    // Add to cart with selected variants
+    // TODO: Update addItem to accept variants when API is ready
+    addItem(selectedMenuForVariant, variantQuantity);
+    
+    // Close bottom sheet and reset
+    setShowVariantSheet(false);
+    setSelectedMenuForVariant(null);
+    setSelectedSugar("normal");
+    setSelectedIce("normal");
+    setVariantQuantity(1);
   };
 
   const handleIncreaseQuantity = (menuId: number) => {
@@ -350,13 +377,12 @@ const MenuPage: React.FC = () => {
           </div>
         )}
 
-        {/* Menu Grid - 2 columns on mobile, 2 on sm, 3 on lg, 4 on xl */}
+        {/* Menu Grid - 2 columns on mobile, 2 on sm, 3 on lg, 5 on xl */}
         {!loading && !error && (
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3 xl:grid-cols-5">
             {filteredMenus.map((menu) => {
-              const quantity = getItemQuantity(menu.id);
               return (
-                <Card key={menu.id}>
+                <MenuCard key={menu.id}>
                   <div className="flex flex-col">
                     {/* Image - No padding, full width */}
                     <div className="relative w-full aspect-[3/2] overflow-hidden bg-gray-100">
@@ -389,46 +415,16 @@ const MenuPage: React.FC = () => {
                         <div className="mb-3 text-md xl:text-xl font-bold text-brand-500">
                           {formatCurrency(menu.price)}
                         </div>
-                        {quantity > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleDecreaseQuantity(menu.id)}
-                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-error-500 text-white transition hover:bg-error-600"
-                            >
-                              {quantity === 1 ? (
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              ) : (
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                                </svg>
-                              )}
-                            </button>
-                            <span className="flex h-9 min-w-[3rem] items-center justify-center rounded-lg bg-brand-50 px-3 text-sm font-semibold text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
-                              {quantity}
-                            </span>
-                            <button
-                              onClick={() => handleIncreaseQuantity(menu.id)}
-                              className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-white transition hover:bg-brand-600"
-                            >
-                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleAddToCart(menu)}
-                            className="w-full rounded-full border-2 border-brand-500 bg-white px-2 xl:px-4 py-1 xl:py-2 text-md font-medium text-brand-500 transition hover:bg-brand-600 hover:text-white"
-                          >
-                            Pesan
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleAddToCart(menu)}
+                          className="w-full rounded-full border-2 border-brand-500 bg-white px-2 xl:px-4 py-1 xl:py-2 text-md font-medium text-brand-500 transition hover:bg-brand-600 hover:text-white"
+                        >
+                          Pesan
+                        </button>
                       </div>
                     </div>
                   </div>
-                </Card>
+                </MenuCard>
               );
             })}
           </div>
@@ -563,6 +559,142 @@ const MenuPage: React.FC = () => {
                 <Link to="/reservation" onClick={() => setShowCartModal(false)}>
                   <Button className="w-full" size="md">Lanjut ke Reservasi</Button>
                 </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Variant Selection Bottom Sheet */}
+        {showVariantSheet && selectedMenuForVariant && (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center">
+            <div className="w-full max-w-lg rounded-t-2xl bg-white dark:bg-gray-dark sm:rounded-2xl max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="sticky top-0 bg-white dark:bg-gray-dark border-b border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Pilih Varian
+                </h3>
+                <button
+                  onClick={() => setShowVariantSheet(false)}
+                  className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Menu Info */}
+              <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                <div className="flex gap-3">
+                  <img
+                    src={selectedMenuForVariant.image_url || "https://via.placeholder.com/80"}
+                    alt={selectedMenuForVariant.menu_name}
+                    className="h-20 w-20 rounded-lg object-cover"
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                      {selectedMenuForVariant.menu_name}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                      {selectedMenuForVariant.description}
+                    </p>
+                    <p className="mt-1 text-lg font-bold text-brand-500">
+                      {formatCurrency(selectedMenuForVariant.price)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Variant Options */}
+              <div className="p-4 space-y-6">
+                {/* Sugar Level */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+                    Tingkat Gula
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["less", "normal", "plus"] as const).map((level) => (
+                      <button
+                        key={level}
+                        onClick={() => setSelectedSugar(level)}
+                        className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition ${
+                          selectedSugar === level
+                            ? "border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400"
+                            : "border-gray-200 text-gray-700 hover:border-gray-300 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600"
+                        }`}
+                      >
+                        {level === "less" ? "Kurang Manis" : level === "normal" ? "Normal" : "Lebih Manis"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ice Level */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+                    Tingkat Es
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["less", "normal", "plus"] as const).map((level) => (
+                      <button
+                        key={level}
+                        onClick={() => setSelectedIce(level)}
+                        className={`px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition ${
+                          selectedIce === level
+                            ? "border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400"
+                            : "border-gray-200 text-gray-700 hover:border-gray-300 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600"
+                        }`}
+                      >
+                        {level === "less" ? "Sedikit Es" : level === "normal" ? "Normal" : "Banyak Es"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
+                    Jumlah
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setVariantQuantity(Math.max(1, variantQuantity - 1))}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-gray-200 text-gray-700 transition hover:border-brand-500 hover:text-brand-500 dark:border-gray-700 dark:text-gray-300"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                      </svg>
+                    </button>
+                    <span className="flex h-10 min-w-[4rem] items-center justify-center rounded-lg bg-gray-50 px-4 text-lg font-semibold text-gray-900 dark:bg-gray-800 dark:text-white">
+                      {variantQuantity}
+                    </span>
+                    <button
+                      onClick={() => setVariantQuantity(variantQuantity + 1)}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-brand-500 text-brand-500 transition hover:bg-brand-500 hover:text-white"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="sticky bottom-0 bg-white dark:bg-gray-dark border-t border-gray-200 dark:border-gray-800 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total</span>
+                  <span className="text-xl font-bold text-brand-500">
+                    {formatCurrency(selectedMenuForVariant.price * variantQuantity)}
+                  </span>
+                </div>
+                <Button 
+                  className="w-full" 
+                  size="md"
+                  onClick={handleConfirmVariant}
+                >
+                  Tambah ke Keranjang
+                </Button>
               </div>
             </div>
           </div>

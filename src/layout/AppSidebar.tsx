@@ -53,6 +53,11 @@ const adminMenuItems: NavItem[] = [
     icon: <TableIcon />,
     path: "/dashboard/tables",
   },
+  {
+    name: "Kelola Banner",
+    icon: <ClipboardIcon />,
+    path: "/dashboard/banners",
+  },
 ];
 
 // Menu untuk staff (hanya Kelola Reservasi)
