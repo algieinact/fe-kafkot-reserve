@@ -179,13 +179,6 @@ const MenuPage: React.FC = () => {
     }
   };
 
-
-
-  const getItemQuantity = (menuId: number) => {
-    const item = cartItems.find((item) => item.menu.id === menuId);
-    return item ? item.quantity : 0;
-  };
-
   // Get category color based on menu category
   const getCategoryColor = (category: MenuCategory) => {
     switch (category) {
