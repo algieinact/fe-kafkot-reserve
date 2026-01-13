@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -9,64 +9,27 @@ import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import BannerDropZone from "../../components/form/form-elements/BannerDropZone";
-
-// Banner interface (temporary - will be replaced with API types later)
-interface Banner {
-  id: number;
-  title: string;
-  subtitle: string;
-  image_url: string;
-  order: number;
-  is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+import { Banner } from "../../types";
+import { bannerApi } from "../../services/api";
 
 interface BannerFormData {
   title: string;
   subtitle: string;
-  image_url: string;
+  image_file: File | null;
   order: number;
   is_active: boolean;
 }
 
 export default function ManageBanner() {
-  // Mock data - will be replaced with API call later
-  const [banners, setBanners] = useState<Banner[]>([
-    {
-      id: 1,
-      title: "Selamat Datang di Ruang Dugamasa",
-      subtitle: "Nikmati kopi terbaik dengan suasana nyaman",
-      image_url: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&h=400&fit=crop",
-      order: 1,
-      is_active: true,
-    },
-    {
-      id: 2,
-      title: "Promo Spesial Hari Ini",
-      subtitle: "Diskon 20% untuk semua menu kopi",
-      image_url: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&h=400&fit=crop",
-      order: 2,
-      is_active: true,
-    },
-    {
-      id: 3,
-      title: "Reservasi Mudah & Cepat",
-      subtitle: "Pesan meja Anda sekarang juga",
-      image_url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=1200&h=400&fit=crop",
-      order: 3,
-      is_active: true,
-    },
-  ]);
-
-  const [loading] = useState(false);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [formData, setFormData] = useState<BannerFormData>({
     title: "",
     subtitle: "",
-    image_url: "",
+    image_file: null,
     order: 1,
     is_active: true,
   });
@@ -76,31 +39,68 @@ export default function ManageBanner() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [bannerToDelete, setBannerToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [submitting, setSubmitting] = useState(false); // Add submitting state
+
+  // Fetch banners from API
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await bannerApi.getAllBanners();
+
+      if (response.success && response.data) {
+        setBanners(response.data);
+      } else {
+        setError(response.error || "Failed to fetch banners");
+      }
+    } catch (err) {
+      console.error("Error fetching banners:", err);
+      setError("Failed to connect to server");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    // Validate image for new banner
+    if (!editingBanner && !formData.image_file) {
+      setError("Image is required for new banner");
+      return;
+    }
+
     try {
-      // TODO: Replace with actual API call
-      if (editingBanner) {
-        // Update existing banner
-        setBanners(banners.map(b => 
-          b.id === editingBanner.id 
-            ? { ...b, ...formData, updated_at: new Date().toISOString() }
-            : b
-        ));
-      } else {
-        // Create new banner
-        const newBanner: Banner = {
-          id: Math.max(...banners.map(b => b.id), 0) + 1,
-          ...formData,
-          created_at: new Date().toISOString(),
-        };
-        setBanners([...banners, newBanner]);
+      setSubmitting(true);
+      const apiFormData = new FormData();
+      apiFormData.append("title", formData.title);
+      apiFormData.append("subtitle", formData.subtitle);
+      apiFormData.append("order", formData.order.toString());
+      apiFormData.append("is_active", formData.is_active ? "1" : "0");
+
+      // Add image file if exists
+      if (formData.image_file) {
+        apiFormData.append("image", formData.image_file);
       }
+
+      if (editingBanner) {
+        await bannerApi.updateBanner(editingBanner.id, apiFormData);
+      } else {
+        await bannerApi.createBanner(apiFormData);
+      }
+
+      await fetchBanners();
       closeModal();
     } catch (err) {
-      console.error("Submit error:", err);
-      setError("Gagal menyimpan banner");
+      console.error("Error saving banner:", err);
+      setError("Failed to save banner");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -114,10 +114,17 @@ export default function ManageBanner() {
 
     try {
       setDeleting(true);
-      // TODO: Replace with actual API call
-      setBanners(banners.filter(b => b.id !== bannerToDelete));
-      setShowDeleteModal(false);
-      setBannerToDelete(null);
+      setError(null);
+
+      const response = await bannerApi.deleteBanner(bannerToDelete);
+
+      if (response.success) {
+        setBanners(banners.filter(b => b.id !== bannerToDelete));
+        setShowDeleteModal(false);
+        setBannerToDelete(null);
+      } else {
+        setError(response.error || "Failed to delete banner");
+      }
     } catch (err) {
       console.error("Delete error:", err);
       setError("Gagal menghapus banner");
@@ -132,17 +139,17 @@ export default function ManageBanner() {
       setFormData({
         title: banner.title,
         subtitle: banner.subtitle,
-        image_url: banner.image_url,
+        image_file: null, // We don't have the original File object, so set to null
         order: banner.order,
         is_active: banner.is_active,
       });
-      setImagePreview(banner.image_url);
+      setImagePreview(banner.image_url); // Display existing image URL as preview
     } else {
       setEditingBanner(null);
       setFormData({
         title: "",
         subtitle: "",
-        image_url: "",
+        image_file: null, // For new banner, no file yet
         order: banners.length + 1,
         is_active: true,
       });
@@ -157,7 +164,7 @@ export default function ManageBanner() {
     setFormData({
       title: "",
       subtitle: "",
-      image_url: "",
+      image_file: null, // Reset image_file
       order: 1,
       is_active: true,
     });
@@ -165,16 +172,15 @@ export default function ManageBanner() {
     setError(null);
   };
 
-  const handleImageDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      // Create preview URL
+  const handleImageChange = (file: File | null) => {
+    if (file) {
+      setFormData({ ...formData, image_file: file });
+      // Create preview URL for display
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-      
-      // TODO: Upload to server and get URL
-      // For now, just use the preview URL
-      setFormData({ ...formData, image_url: previewUrl });
+    } else {
+      setFormData({ ...formData, image_file: null });
+      setImagePreview(null);
     }
   };
 
@@ -221,11 +227,10 @@ export default function ManageBanner() {
       label: "Status",
       sortable: true,
       render: (val) => (
-        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-          val
-            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-            : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
-        }`}>
+        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${val
+          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+          : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+          }`}>
           {val ? "Aktif" : "Nonaktif"}
         </span>
       )
@@ -328,8 +333,12 @@ export default function ManageBanner() {
               <Label htmlFor="banner-image">
                 Gambar Banner <span className="text-red-500">*</span>
               </Label>
-              <BannerDropZone 
-                onDrop={handleImageDrop}
+              <BannerDropZone
+                onDrop={(files) => {
+                  if (files.length > 0) {
+                    handleImageChange(files[0]);
+                  }
+                }}
                 preview={imagePreview}
               />
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -402,11 +411,12 @@ export default function ManageBanner() {
               type="button"
               onClick={closeModal}
               variant="outline"
+              disabled={submitting}
             >
               Batal
             </Button>
-            <Button type="submit" variant="primary">
-              {editingBanner ? "Simpan Perubahan" : "Tambah Banner"}
+            <Button type="submit" variant="primary" disabled={submitting}>
+              {submitting ? "Menyimpan..." : (editingBanner ? "Simpan Perubahan" : "Tambah Banner")}
             </Button>
           </div>
         </form>

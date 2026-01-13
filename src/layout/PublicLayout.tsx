@@ -79,7 +79,7 @@ const PublicLayout: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t mt-8 border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-dark">
+      <footer className="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-dark">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* About */}

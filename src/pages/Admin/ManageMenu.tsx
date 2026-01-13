@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { menuApi } from "../../services/api";
-import { Menu, MenuFormData } from "../../types";
+import { menuApi, variationApi } from "../../services/api";
+import { Menu, MenuFormData, VariationGroup } from "../../types";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Button from "../../components/ui/button/Button";
@@ -28,6 +28,10 @@ export default function ManageMenu() {
     const [menuToDelete, setMenuToDelete] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
 
+    // Variation Groups State
+    const [variationGroups, setVariationGroups] = useState<VariationGroup[]>([]);
+    const [selectedVariationIds, setSelectedVariationIds] = useState<number[]>([]);
+
     useEffect(() => {
         fetchMenus();
     }, []);
@@ -50,18 +54,37 @@ export default function ManageMenu() {
         }
     };
 
+    const fetchVariationGroups = async () => {
+        try {
+            const response = await variationApi.getAllGroups();
+            if (response.success && response.data) {
+                setVariationGroups(response.data);
+            }
+        } catch (err) {
+            console.error("Error fetching variation groups:", err);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             if (editingMenu) {
                 const response = await menuApi.updateMenu(editingMenu.id.toString(), formData);
                 if (response.success) {
+                    // Assign variations if any selected
+                    if (selectedVariationIds.length > 0) {
+                        await variationApi.assignToMenu(editingMenu.id, selectedVariationIds);
+                    }
                     await fetchMenus();
                     closeModal();
                 }
             } else {
                 const response = await menuApi.createMenu(formData);
-                if (response.success) {
+                if (response.success && response.data) {
+                    // Assign variations if any selected
+                    if (selectedVariationIds.length > 0) {
+                        await variationApi.assignToMenu(response.data.id, selectedVariationIds);
+                    }
                     await fetchMenus();
                     closeModal();
                 }
@@ -98,7 +121,10 @@ export default function ManageMenu() {
         }
     };
 
-    const openModal = (menu?: Menu) => {
+    const openModal = async (menu?: Menu) => {
+        // Fetch variation groups when opening modal
+        await fetchVariationGroups();
+
         if (menu) {
             setEditingMenu(menu);
             setFormData({
@@ -108,6 +134,17 @@ export default function ManageMenu() {
                 price: menu.price,
                 is_available: menu.is_available,
             });
+
+            // Fetch menu details to get assigned variations
+            try {
+                const response = await menuApi.getMenuById(menu.id.toString());
+                if (response.success && response.data && response.data.variation_groups) {
+                    const assignedIds = response.data.variation_groups.map((g: VariationGroup) => g.id);
+                    setSelectedVariationIds(assignedIds);
+                }
+            } catch (err) {
+                console.error("Error fetching menu details:", err);
+            }
         } else {
             setEditingMenu(null);
             setFormData({
@@ -117,6 +154,7 @@ export default function ManageMenu() {
                 price: 0,
                 is_available: true,
             });
+            setSelectedVariationIds([]);
         }
         setShowModal(true);
     };
@@ -131,6 +169,7 @@ export default function ManageMenu() {
             price: 0,
             is_available: true,
         });
+        setSelectedVariationIds([]);
         setError(null);
     };
 
@@ -374,6 +413,59 @@ export default function ManageMenu() {
                             <label htmlFor="is_available" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 Menu tersedia untuk dipesan
                             </label>
+                        </div>
+
+                        {/* Variation Groups Selection */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Grup Variasi (Opsional)
+                            </label>
+                            <div className="border border-gray-300 dark:border-gray-700 rounded-lg p-3 max-h-48 overflow-y-auto">
+                                {variationGroups.length === 0 ? (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Belum ada grup variasi. Buat di halaman Kelola Variasi.
+                                    </p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {variationGroups.map((group) => (
+                                            <label
+                                                key={group.id}
+                                                className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded cursor-pointer"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedVariationIds.includes(group.id)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setSelectedVariationIds([...selectedVariationIds, group.id]);
+                                                        } else {
+                                                            setSelectedVariationIds(
+                                                                selectedVariationIds.filter((id) => id !== group.id)
+                                                            );
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
+                                                />
+                                                <div className="ml-3 flex-1">
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {group.name}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {group.type === "single_choice" ? "Pilihan Tunggal" : "Pilihan Ganda"}
+                                                        {group.is_required && " • Wajib"}
+                                                        {group.options && ` • ${group.options.length} opsi`}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            {selectedVariationIds.length > 0 && (
+                                <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                                    {selectedVariationIds.length} grup variasi dipilih
+                                </p>
+                            )}
                         </div>
                     </div>
 

@@ -1,6 +1,9 @@
 import {
   Menu,
   MenuFormData,
+  Banner,
+  VariationGroup,
+  VariationOption,
   Table,
   TableFormData,
   Reservation,
@@ -29,6 +32,7 @@ const getAuthToken = (): string | null => {
 const createHeaders = (includeAuth = false): HeadersInit => {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
+    "Accept": "application/json", // Force JSON response from Laravel
   };
 
   if (includeAuth) {
@@ -151,17 +155,18 @@ export const menuApi = {
 
   updateMenu: async (id: string, data: MenuFormData): Promise<ApiResponse<Menu>> => {
     const formData = new FormData();
+    formData.append("_method", "PUT"); // Laravel needs this for FormData PUT requests
     formData.append("menu_name", data.menu_name);
     formData.append("category", data.category);
     formData.append("description", data.description);
     formData.append("price", data.price.toString());
-    formData.append("is_available", data.is_available.toString());
+    formData.append("is_available", data.is_available ? "1" : "0"); // Convert to 1/0 for Laravel
     if (data.image) {
       formData.append("image", data.image);
     }
 
     const response = await fetch(`${API_BASE_URL}/admin/menus/${id}`, {
-      method: "PUT",
+      method: "POST", // Use POST with _method field
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
       },
@@ -178,6 +183,172 @@ export const menuApi = {
     return handleResponse<void>(response);
   },
 };
+
+// ============================================
+// BANNER API
+// ============================================
+
+export const bannerApi = {
+  // Public: Get active banners only
+  getBanners: async (): Promise<ApiResponse<Banner[]>> => {
+    const response = await fetch(`${API_BASE_URL}/banners`, {
+      headers: createHeaders(),
+    });
+    return handleResponse<Banner[]>(response);
+  },
+
+  // Admin: Get all banners (including inactive)
+  getAllBanners: async (): Promise<ApiResponse<Banner[]>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/banners`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<Banner[]>(response);
+  },
+
+  // Admin: Get single banner
+  getBannerById: async (id: number): Promise<ApiResponse<Banner>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/banners/${id}`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<Banner>(response);
+  },
+
+  // Admin: Create banner
+  createBanner: async (data: FormData): Promise<ApiResponse<Banner>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/banners`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: data,
+    });
+    return handleResponse<Banner>(response);
+  },
+
+  // Admin: Update banner
+  updateBanner: async (id: number, data: FormData): Promise<ApiResponse<Banner>> => {
+    data.append("_method", "PUT");
+    const response = await fetch(`${API_BASE_URL}/admin/banners/${id}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: data,
+    });
+    return handleResponse<Banner>(response);
+  },
+
+  // Admin: Delete banner
+  deleteBanner: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/banners/${id}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
+    });
+    return handleResponse<void>(response);
+  },
+};
+
+// ============================================
+// VARIATION API
+// ============================================
+
+export const variationApi = {
+  // Variation Groups
+  getAllGroups: async (): Promise<ApiResponse<VariationGroup[]>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-groups`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<VariationGroup[]>(response);
+  },
+
+  getGroupById: async (id: number): Promise<ApiResponse<VariationGroup>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-groups/${id}`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<VariationGroup>(response);
+  },
+
+  createGroup: async (data: Omit<VariationGroup, 'id' | 'options' | 'created_at' | 'updated_at'>): Promise<ApiResponse<VariationGroup>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-groups`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<VariationGroup>(response);
+  },
+
+  updateGroup: async (id: number, data: Partial<Omit<VariationGroup, 'id' | 'options' | 'created_at' | 'updated_at'>>): Promise<ApiResponse<VariationGroup>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-groups/${id}`, {
+      method: "PUT",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<VariationGroup>(response);
+  },
+
+  deleteGroup: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-groups/${id}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
+    });
+    return handleResponse<void>(response);
+  },
+
+  // Variation Options
+  createOption: async (data: Omit<VariationOption, 'id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<VariationOption>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-options`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<VariationOption>(response);
+  },
+
+  updateOption: async (id: number, data: Partial<Omit<VariationOption, 'id' | 'variation_group_id' | 'created_at' | 'updated_at'>>): Promise<ApiResponse<VariationOption>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-options/${id}`, {
+      method: "PUT",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<VariationOption>(response);
+  },
+
+  deleteOption: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-options/${id}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
+    });
+    return handleResponse<void>(response);
+  },
+
+  reorderOptions: async (options: { id: number; order: number }[]): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/variation-options/reorder`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify({ options }),
+    });
+    return handleResponse<void>(response);
+  },
+
+  // Menu Variation Assignment
+  assignToMenu: async (menuId: number, variationGroupIds: number[]): Promise<ApiResponse<Menu>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/menus/${menuId}/variations`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify({ variation_group_ids: variationGroupIds }),
+    });
+    return handleResponse<Menu>(response);
+  },
+
+  removeFromMenu: async (menuId: number, groupId: number): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/menus/${menuId}/variations/${groupId}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
+    });
+    return handleResponse<void>(response);
+  },
+};
+
 
 // ============================================
 // TABLE API
@@ -393,6 +564,7 @@ export const dashboardApi = {
 export default {
   auth: authApi,
   menu: menuApi,
+  banner: bannerApi,
   table: tableApi,
   reservation: reservationApi,
   dashboard: dashboardApi,

@@ -747,7 +747,7 @@ const ReservationPageMultiStep: React.FC = () => {
                                             Silakan pilih menu terlebih dahulu di halaman Menu
                                         </p>
                                         <button
-                                            onClick={() => navigate('/menu')}
+                                            onClick={() => navigate('/')}
                                             className="mt-3 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
                                         >
                                             Pilih Menu →

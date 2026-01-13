@@ -44,7 +44,57 @@ export interface Menu {
   is_available: boolean;
   created_at: string;
   updated_at: string;
+  variation_groups?: VariationGroup[];
 }
+
+// Banner Types
+export interface Banner {
+  id: number;
+  title: string;
+  subtitle: string;
+  image_url: string;
+  order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Variation Types
+export type VariationType = 'single_choice' | 'multiple_choice';
+
+export interface VariationOption {
+  id: number;
+  variation_group_id: number;
+  name: string;
+  price_adjustment: number;
+  is_default: boolean;
+  order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface VariationGroup {
+  id: number;
+  name: string;
+  type: VariationType;
+  is_required: boolean;
+  min_selections: number;
+  max_selections: number | null;
+  options: VariationOption[]; // Renamed from options to match backend
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MenuWithVariations extends Menu {
+  variation_groups: VariationGroup[];
+}
+
+export interface SelectedVariation {
+  group_name: string;
+  option_name: string;
+  price: number;
+}
+
 
 // Table Types
 export interface TableTypeDetail {
@@ -176,6 +226,7 @@ export interface ReservationFormData {
   order_items: {
     menu_id: number;
     quantity: number;
+    variations?: SelectedVariation[];
   }[];
 }
 
@@ -201,8 +252,11 @@ export interface TableFormData {
 
 // Cart Types
 export interface CartItem {
+  id: string; // Unique identifier for cart item instance (menuId + variations unique hash)
   menu: Menu;
   quantity: number;
+  variations?: SelectedVariation[]; // Customer's variation selections
+  total_price?: number; // Base price + variation adjustments
 }
 
 export interface Cart {

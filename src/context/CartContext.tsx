@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Menu, CartItem } from "../types";
+import { Menu, CartItem, SelectedVariation } from "../types";
 
 interface CartContextType {
   cartItems: CartItem[];
   totalItems: number;
   totalPrice: number;
-  addItem: (menu: Menu, quantity: number) => void;
-  removeItem: (menuId: number) => void;
-  updateQuantity: (menuId: number, quantity: number) => void;
+  addItem: (menu: Menu, quantity: number, variations?: SelectedVariation[]) => void;
+  removeItem: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   getItemQuantity: (menuId: number) => number;
 }
@@ -37,37 +37,72 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addItem = (menu: Menu, quantity: number) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.menu.id === menu.id);
+  const calculateItemPrice = (menu: Menu, variations?: SelectedVariation[]): number => {
+    const basePrice = Number(menu.price) || 0;
+    if (!variations || variations.length === 0) return basePrice;
 
-      if (existingItem) {
-        // Update quantity if item already exists
-        return prevItems.map((item) =>
-          item.menu.id === menu.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+    // Use 'price' property from SelectedVariation (updated type)
+    const variationAdjustment = variations.reduce((sum, v) => sum + (Number(v.price) || 0), 0);
+    return basePrice + variationAdjustment;
+  };
+
+  // Helper to check if two variation arrays are effectively the same
+  const areVariationsEqual = (vars1?: SelectedVariation[], vars2?: SelectedVariation[]): boolean => {
+    if (!vars1 && !vars2) return true;
+    if (!vars1 || !vars2) return false;
+    if (vars1.length !== vars2.length) return false;
+
+    // Sort by group_name + option_name to ensure order doesn't matter
+    const sorted1 = [...vars1].sort((a, b) => (a.group_name + a.option_name).localeCompare(b.group_name + b.option_name));
+    const sorted2 = [...vars2].sort((a, b) => (a.group_name + a.option_name).localeCompare(b.group_name + b.option_name));
+
+    return sorted1.every((v, i) =>
+      v.group_name === sorted2[i].group_name &&
+      v.option_name === sorted2[i].option_name &&
+      v.price === sorted2[i].price
+    );
+  };
+
+  const addItem = (menu: Menu, quantity: number, variations: SelectedVariation[] = []) => {
+    setCartItems((prevItems) => {
+      // Find exact same item (same menu and same variations)
+      const existingItemIndex = prevItems.findIndex((item) =>
+        item.menu.id === menu.id && areVariationsEqual(item.variations, variations)
+      );
+
+      if (existingItemIndex > -1) {
+        // Update existing item
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex].quantity += quantity;
+        return updatedItems;
       } else {
-        // Add new item to cart
-        return [...prevItems, { menu, quantity }];
+        // Add new item
+        const itemPrice = calculateItemPrice(menu, variations);
+        const newItem: CartItem = {
+          id: `${menu.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // Unique instance ID
+          menu,
+          quantity,
+          variations,
+          total_price: itemPrice
+        };
+        return [...prevItems, newItem];
       }
     });
   };
 
-  const removeItem = (menuId: number) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.menu.id !== menuId));
+  const removeItem = (cartItemId: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== cartItemId));
   };
 
-  const updateQuantity = (menuId: number, quantity: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeItem(menuId);
+      removeItem(cartItemId);
       return;
     }
 
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item.menu.id === menuId ? { ...item, quantity } : item
+        item.id === cartItemId ? { ...item, quantity } : item
       )
     );
   };
@@ -78,14 +113,19 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const getItemQuantity = (menuId: number): number => {
-    const item = cartItems.find((item) => item.menu.id === menuId);
-    return item ? item.quantity : 0;
+    // This now returns TOTAL quantity of a menu ID across all variations
+    return cartItems
+      .filter((item) => item.menu.id === menuId)
+      .reduce((sum, item) => sum + item.quantity, 0);
   };
 
   // Calculate totals
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = cartItems.reduce(
-    (sum, item) => sum + (Number(item.menu.price) || 0) * item.quantity,
+    (sum, item) => {
+      const itemPrice = Number(item.total_price) || Number(item.menu.price) || 0;
+      return sum + itemPrice * item.quantity;
+    },
     0
   );
 
