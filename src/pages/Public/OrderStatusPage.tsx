@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
-import { formatCurrency, formatDate, formatTime, formatReservationStatus } from "../../utils/formatters";
+import { formatCurrency, formatDate, formatTime } from "../../utils/formatters";
 import { Card } from "../../components/ui/card";
 import Button from "../../components/ui/button/Button";
 import { reservationApi } from "../../services/api";
