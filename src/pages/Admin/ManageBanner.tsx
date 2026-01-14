@@ -319,15 +319,14 @@ export default function ManageBanner() {
       </div>
 
       {/* Add/Edit Modal */}
-      <Modal isOpen={showModal} onClose={closeModal} className="max-w-2xl">
-        <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              {editingBanner ? "Edit Banner" : "Tambah Banner Baru"}
-            </h3>
-          </div>
+      <Modal isOpen={showModal} onClose={closeModal} className="max-w-2xl p-5 lg:p-8">
+        <form onSubmit={handleSubmit} className="flex flex-col max-h-[85vh]">
+          <h4 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
+            {editingBanner ? "Edit Banner" : "Tambah Banner Baru"}
+          </h4>
 
-          <div className="px-6 py-4 space-y-4">
+          {/* Scrollable Content */}
+          <div className="space-y-4 overflow-y-auto pr-2 flex-1">
             {/* Banner Image */}
             <div>
               <Label htmlFor="banner-image">
@@ -406,16 +405,18 @@ export default function ManageBanner() {
             </div>
           </div>
 
-          <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3">
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end w-full gap-3 mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               type="button"
+              size="sm"
               onClick={closeModal}
               variant="outline"
               disabled={submitting}
             >
               Batal
             </Button>
-            <Button type="submit" variant="primary" disabled={submitting}>
+            <Button type="submit" size="sm" variant="primary" disabled={submitting}>
               {submitting ? "Menyimpan..." : (editingBanner ? "Simpan Perubahan" : "Tambah Banner")}
             </Button>
           </div>

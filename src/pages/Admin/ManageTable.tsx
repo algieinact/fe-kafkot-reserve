@@ -9,6 +9,8 @@ import DataTableOne, { ColumnConfig } from "../../components/tables/DataTables/T
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { Modal } from "../../components/ui/modal";
 import TableLayoutEditor from "../../components/tables/TableLayoutEditor";
+import Label from "../../components/form/Label";
+import Input from "../../components/form/input/InputField";
 
 export default function ManageTable() {
     const [tables, setTables] = useState<Table[]>([]);
@@ -91,7 +93,7 @@ export default function ManageTable() {
 
     // HANDLERS
 
-    const handleSlotClick = (x: number, y: number, currentTable?: Table) => {
+    const handleSlotClick = (x: number, y: number, currentTable?: Table, spanX?: number, spanY?: number) => {
         if (currentTable) {
             // Edit existing table at this position
             handleEditTable(currentTable);
@@ -107,7 +109,9 @@ export default function ManageTable() {
                 floor: selectedFloor,
                 position_x: x,
                 position_y: y,
-                orientation: "horizontal"
+                orientation: "horizontal",
+                span_x: spanX || 1,
+                span_y: spanY || 1
             });
             setShowAssignModal(true);
         }
@@ -171,7 +175,9 @@ export default function ManageTable() {
                     selectedFloor,
                     selectedSlot.x,
                     selectedSlot.y,
-                    "horizontal"
+                    "horizontal",
+                    editFormData.span_x,
+                    editFormData.span_y
                 );
                 if (response.success) await fetchTables();
             }
@@ -225,14 +231,36 @@ export default function ManageTable() {
 
     // Columns for List View
     const columns: ColumnConfig[] = useMemo(() => [
-        { key: "table_number", label: "Nomor Meja", sortable: true },
+        {
+            key: "table_number",
+            label: "Nomor Meja",
+            sortable: true,
+            render: (val) => (
+                <span className="font-normal dark:text-gray-400/90 text-gray-800 text-theme-sm">
+                    {val as string}
+                </span>
+            )
+        },
         {
             key: "floor",
             label: "Lokasi",
             sortable: true,
-            render: (_val, row: Table) => row.position_x !== -1 ? `Lantai ${row.floor} (${row.position_x},${row.position_y})` : "Belum ditempatkan"
+            render: (_val, row: Table) => (
+                <span className="font-normal dark:text-gray-400/90 text-gray-800 text-theme-sm">
+                    {row.position_x !== -1 ? `Lantai ${row.floor} (${row.position_x},${row.position_y})` : "Belum ditempatkan"}
+                </span>
+            )
         },
-        { key: "capacity", label: "Kapasitas", sortable: true, render: (val) => `${val} Orang` },
+        {
+            key: "capacity",
+            label: "Kapasitas",
+            sortable: true,
+            render: (val) => (
+                <span className="font-normal dark:text-gray-400/90 text-gray-800 text-theme-sm">
+                    {val} Orang
+                </span>
+            )
+        },
         {
             key: "status",
             label: "Status",
@@ -251,9 +279,21 @@ export default function ManageTable() {
             label: "Aksi",
             sortable: false,
             render: (_val, row) => (
-                <div className="flex gap-2">
-                    <button onClick={() => handleEditTable(row as Table)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit size={16} /></button>
-                    <button onClick={() => confirmDelete(row as Table)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+                <div className="flex items-center gap-1.5">
+                    <button
+                        onClick={() => handleEditTable(row as Table)}
+                        className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        title="Edit"
+                    >
+                        <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={() => confirmDelete(row as Table)}
+                        className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Hapus"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
                 </div>
             )
         }
@@ -368,140 +408,169 @@ export default function ManageTable() {
             )}
 
             {/* Modal Create/Edit General */}
-            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} className="max-w-lg">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} className="max-w-lg p-5 lg:p-10">
+                <form onSubmit={handleCreateOrUpdate} className="space-y-5">
+                    <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
                         {editingTable ? `Edit Meja ${editingTable.table_number}` : "Tambah Meja Baru"}
-                    </h3>
-                </div>
-                <form onSubmit={handleCreateOrUpdate} className="p-6 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Nomor Meja</label>
-                        <input type="text" required value={editFormData.table_number}
-                            onChange={e => setEditFormData({ ...editFormData, table_number: e.target.value })}
-                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                            disabled={!!editingTable}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tipe</label>
-                        <select
-                            value={editFormData.table_type_id}
-                            onChange={e => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
-                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                        >
-                            {tableTypes.map(t => <option key={t.id} value={t.id}>{t.type_name}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Kapasitas</label>
-                        <input type="number" min="1" required value={editFormData.capacity}
-                            onChange={e => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
-                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Status</label>
-                        <select
-                            value={editFormData.status}
-                            onChange={e => setEditFormData({ ...editFormData, status: e.target.value as any })}
-                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                        >
-                            <option value="available">Tersedia</option>
-                            <option value="reserved">Direservasi</option>
-                            <option value="inactive">Tidak Aktif</option>
-                        </select>
-                    </div>
+                    </h4>
 
-                    {/* Position Info & Unassign Button */}
-                    {editingTable && editingTable.position_x !== -1 && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex justify-between items-center text-sm mb-4">
-                            <span className="text-blue-800 dark:text-blue-200">
-                                <b>Lokasi Saat Ini:</b> Lantai {editingTable.floor} (Posisi {editingTable.position_x}, {editingTable.position_y})
-                            </span>
-                            <button
-                                type="button"
-                                onClick={handleUnassignPosition}
-                                className="text-red-600 hover:text-red-800 text-xs font-bold underline px-2"
-                            >
-                                Lepaskan dari Layout
-                            </button>
+                    <div className="space-y-4">
+                        <div>
+                            <Label>Nomor Meja</Label>
+                            <Input type="text" value={editFormData.table_number}
+                                onChange={e => setEditFormData({ ...editFormData, table_number: e.target.value })}
+                                disabled={!!editingTable}
+                            />
                         </div>
-                    )}
+                        <div>
+                            <Label>Tipe</Label>
+                            <select
+                                value={editFormData.table_type_id}
+                                onChange={e => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
+                                className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+                            >
+                                {tableTypes.map(t => <option key={t.id} value={t.id}>{t.type_name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <Label>Kapasitas</Label>
+                            <Input type="number" min="1" value={editFormData.capacity}
+                                onChange={e => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Status</Label>
+                            <select
+                                value={editFormData.status}
+                                onChange={e => setEditFormData({ ...editFormData, status: e.target.value as any })}
+                                className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+                            >
+                                <option value="available">Tersedia</option>
+                                <option value="reserved">Direservasi</option>
+                                <option value="inactive">Tidak Aktif</option>
+                            </select>
+                        </div>
 
-                    <div className="flex justify-end gap-2 mt-4 pt-4 border-t dark:border-gray-800">
-                        <Button type="button" variant="outline" onClick={() => setShowEditModal(false)}>Batal</Button>
-                        <Button type="submit">Simpan</Button>
+                        {/* Position Info & Unassign Button */}
+                        {editingTable && editingTable.position_x !== -1 && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex justify-between items-center text-sm">
+                                <span className="text-blue-800 dark:text-blue-200">
+                                    <b>Lokasi Saat Ini:</b> Lantai {editingTable.floor} (Posisi {editingTable.position_x}, {editingTable.position_y})
+                                    {(editingTable.span_x && editingTable.span_x > 1 || editingTable.span_y && editingTable.span_y > 1) && (
+                                        <div className="mt-1 flex items-center gap-2">
+                                            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded border border-blue-200">
+                                                Merged: {editingTable.span_x || 1}x{editingTable.span_y || 1}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (confirm("Apakah Anda yakin ingin memisahkan meja ini kembali menjadi 1x1?")) {
+                                                        // Update table to 1x1 span
+                                                        setEditFormData({ ...editFormData, span_x: 1, span_y: 1 });
+                                                        // Note: Actual saving happens when form is submitted
+                                                    }
+                                                }}
+                                                className="text-xs text-red-600 hover:underline"
+                                            >
+                                                Unmerge
+                                            </button>
+                                        </div>
+                                    )}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleUnassignPosition}
+                                    className="text-red-600 hover:text-red-800 text-xs font-bold underline px-2"
+                                >
+                                    Lepaskan dari Layout
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center justify-end w-full gap-3 mt-6">
+                        <Button type="button" size="sm" variant="outline" onClick={() => setShowEditModal(false)}>Batal</Button>
+                        <Button type="submit" size="sm">Simpan</Button>
                     </div>
                 </form>
             </Modal>
 
             {/* Modal Assign to Slot */}
-            <Modal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} className="max-w-lg">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                        Atur Meja di Lantai {selectedFloor} (Posisi {selectedSlot?.x}, {selectedSlot?.y})
-                    </h3>
-                </div>
-                <div className="p-6">
+            <Modal isOpen={showAssignModal} onClose={() => setShowAssignModal(false)} className="max-w-lg p-5 lg:p-10">
+                <div className="space-y-5">
+                    <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
+                        Atur Meja di Lantai {selectedFloor} (Posisi {selectedSlot?.x ?? '-'}, {selectedSlot?.y ?? '-'})
+                    </h4>
+
+                    {(editFormData.span_x && editFormData.span_x > 1 || editFormData.span_y && editFormData.span_y > 1) && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+                            <p className="text-sm text-blue-800 dark:text-blue-200 font-medium flex items-center gap-2">
+                                <span className="text-lg">📐</span>
+                                Area Terpilih: {editFormData.span_x} baris x {editFormData.span_y} kolom
+                            </p>
+                            <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                Meja ini akan menempati area yang digabungkan.
+                            </p>
+                        </div>
+                    )}
+
                     {/* Internal Tabs for Assign Modal */}
-                    <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+                    <div className="flex border-b border-gray-200 dark:border-gray-700">
                         <button onClick={() => setAssignTab('new')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${assignTab === 'new' ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Buat Meja Baru</button>
                         <button onClick={() => setAssignTab('existing')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${assignTab === 'existing' ? 'border-brand-500 text-brand-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Pilih dari Daftar</button>
                     </div>
 
-                    <form onSubmit={handleAssignSubmit} className="space-y-4">
-                        {assignTab === 'new' ? (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 dark:text-gray-300">Nomor Meja</label>
-                                    <input type="text" required value={editFormData.table_number}
-                                        onChange={e => setEditFormData({ ...editFormData, table_number: e.target.value })}
-                                        className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                        placeholder="Contoh: A01"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={handleAssignSubmit} className="space-y-5">
+                        <div className="space-y-4">
+                            {assignTab === 'new' ? (
+                                <>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Tipe</label>
-                                        <select
-                                            value={editFormData.table_type_id}
-                                            onChange={e => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
-                                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                        >
-                                            {tableTypes.map(t => <option key={t.id} value={t.id}>{t.type_name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1 dark:text-gray-300">Kapasitas</label>
-                                        <input type="number" min="1" required value={editFormData.capacity}
-                                            onChange={e => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
-                                            className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        <Label>Nomor Meja</Label>
+                                        <Input type="text" value={editFormData.table_number}
+                                            onChange={e => setEditFormData({ ...editFormData, table_number: e.target.value })}
+                                            placeholder="Contoh: A01"
                                         />
                                     </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label>Tipe</Label>
+                                            <select
+                                                value={editFormData.table_type_id}
+                                                onChange={e => setEditFormData({ ...editFormData, table_type_id: Number(e.target.value) })}
+                                                className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+                                            >
+                                                {tableTypes.map(t => <option key={t.id} value={t.id}>{t.type_name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <Label>Kapasitas</Label>
+                                            <Input type="number" min="1" value={editFormData.capacity}
+                                                onChange={e => setEditFormData({ ...editFormData, capacity: Number(e.target.value) })}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div>
+                                    <Label>Pilih Meja yang Belum Ditempatkan</Label>
+                                    <select
+                                        value={selectedExistingTableId}
+                                        onChange={e => setSelectedExistingTableId(e.target.value)}
+                                        className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+                                    >
+                                        <option value="">-- Pilih Meja --</option>
+                                        {unassignedTables.map(t => (
+                                            <option key={t.id} value={t.id}>{t.table_number} (Kap: {t.capacity})</option>
+                                        ))}
+                                    </select>
+                                    {unassignedTables.length === 0 && <p className="text-sm text-yellow-600 mt-2">Tidak ada meja yang belum ditempatkan.</p>}
                                 </div>
-                            </>
-                        ) : (
-                            <div>
-                                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Pilih Meja yang Belum Ditempatkan</label>
-                                <select
-                                    value={selectedExistingTableId}
-                                    onChange={e => setSelectedExistingTableId(e.target.value)}
-                                    className="w-full border rounded-lg p-2 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                    required
-                                >
-                                    <option value="">-- Pilih Meja --</option>
-                                    {unassignedTables.map(t => (
-                                        <option key={t.id} value={t.id}>{t.table_number} (Kap: {t.capacity})</option>
-                                    ))}
-                                </select>
-                                {unassignedTables.length === 0 && <p className="text-sm text-yellow-600 mt-2">Tidak ada meja yang belum ditempatkan.</p>}
-                            </div>
-                        )}
+                            )}
+                        </div>
 
-                        <div className="flex justify-end gap-2 mt-6 pt-4 border-t dark:border-gray-800">
-                            <Button type="button" variant="outline" onClick={() => setShowAssignModal(false)}>Batal</Button>
-                            <Button type="submit">Tempatkan Meja</Button>
+                        <div className="flex items-center justify-end w-full gap-3 mt-6">
+                            <Button type="button" size="sm" variant="outline" onClick={() => setShowAssignModal(false)}>Batal</Button>
+                            <Button type="submit" size="sm">Tempatkan Meja</Button>
                         </div>
                     </form>
                 </div>

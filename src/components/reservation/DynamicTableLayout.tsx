@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Table, TableTypeDetail } from '../../types';
+import { User, ChevronDown } from 'lucide-react'; // Using icons for minimalist feel
 
 interface DynamicTableLayoutProps {
     tables: Table[];
@@ -55,41 +56,77 @@ const DynamicTableLayout: React.FC<DynamicTableLayoutProps> = ({
         return { floorTables: floor };
     }, [tables, selectedFloor, selectedTypeId]);
 
+    // Helper to find table at specific coordinate considering span
     const getTableAt = (x: number, y: number) => {
-        return floorTables.find(t => Number(t.position_x) === x && Number(t.position_y) === y);
+        return floorTables.find(t => {
+            const spanX = t.span_x || 1;
+            const spanY = t.span_y || 1;
+            return x >= Number(t.position_x) && x < Number(t.position_x) + spanX &&
+                y >= Number(t.position_y) && y < Number(t.position_y) + spanY;
+        });
+    };
+
+    // Check if a cell should be skipped (it's part of a merged table)
+    const shouldSkipCell = (x: number, y: number) => {
+        const table = getTableAt(x, y);
+        if (!table) return false;
+        // If this is not the origin cell of the table, skip it
+        return !(Number(table.position_x) === x && Number(table.position_y) === y);
     };
 
     const renderGrid = () => {
         const grid = [];
         for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
+                // Skip rendering if this cell is part of a merge but not the top-left
+                if (shouldSkipCell(x, y)) {
+                    continue;
+                }
+
                 const table = getTableAt(x, y);
-                // Type assertion for is_available_for_booking because it might not be in Table interface yet (it comes from backend availability check)
+                // Type assertion for is_available_for_booking
                 const isAvailable = (table as any)?.is_available_for_booking;
                 const isSelected = table?.id === selectedTableId;
+
+                const spanX = table?.span_x || 1;
+                const spanY = table?.span_y || 1;
+                const isMerged = spanX > 1 || spanY > 1;
 
                 grid.push(
                     <div
                         key={`${x}-${y}`}
+                        style={{
+                            gridColumn: `span ${spanX}`,
+                            gridRow: `span ${spanY}`
+                        }}
                         onClick={() => table && isAvailable && onTableSelect(table.id)}
                         className={`
-                            aspect-square rounded-lg border-2 flex flex-col items-center justify-center transition-all relative
+                            relative flex flex-col items-center justify-center transition-all duration-200
+                            ${!isMerged ? 'aspect-square' : 'min-h-full'} 
+                            rounded-xl
                             ${table
                                 ? isSelected
-                                    ? "bg-blue-500 border-blue-600 text-white shadow-lg scale-105 cursor-pointer z-10"
+                                    ? "bg-gray-900 border-2 border-gray-900 text-white shadow-lg scale-105 z-20"
                                     : isAvailable
-                                        ? "bg-emerald-100 border-emerald-400 text-emerald-900 hover:bg-emerald-200 cursor-pointer hover:shadow-md z-10"
-                                        : "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed z-10"
-                                : "invisible border-0"
+                                        ? "bg-white border text-gray-800 hover:border-gray-400 hover:shadow-md cursor-pointer z-10 border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:border-gray-500"
+                                        : "bg-gray-50 border border-gray-100 text-gray-300 cursor-not-allowed dark:bg-gray-900/50 dark:border-gray-800 dark:text-gray-700"
+                                : "invisible" // Empty slots invisible
                             }
                         `}
                     >
                         {table && (
                             <>
-                                <span className="font-bold text-lg">{table.table_number}</span>
-                                <span className="text-xs">{table.capacity} Org</span>
-                                {isSelected && (
-                                    <div className="absolute top-1 right-1 w-2 h-2 bg-white rounded-full animate-pulse" />
+                                <span className={`font-semibold ${isMerged ? 'text-lg' : 'text-base'}`}>{table.table_number}</span>
+
+                                <div className="flex items-center gap-1 mt-1">
+                                    <User size={12} className={isSelected ? 'text-gray-300' : 'text-gray-400'} />
+                                    <span className={`text-xs ${isSelected ? 'text-gray-300' : 'text-gray-500'}`}>{table.capacity}</span>
+                                </div>
+
+                                {/* Status Indicator Dot */}
+                                {!isSelected && (
+                                    <div className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-gray-300'
+                                        }`} />
                                 )}
                             </>
                         )}
@@ -102,35 +139,33 @@ const DynamicTableLayout: React.FC<DynamicTableLayoutProps> = ({
 
     return (
         <div className="space-y-6">
-            {/* Info Legend */}
-            <div className="flex flex-wrap gap-4 text-sm justify-between bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-emerald-100 border-2 border-emerald-400 rounded"></div>
-                        <span className="text-gray-600 dark:text-gray-300">Tersedia</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-blue-500 border-2 border-blue-600 rounded"></div>
-                        <span className="text-gray-600 dark:text-gray-300">Dipilih</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 bg-gray-200 border-2 border-gray-300 rounded"></div>
-                        <span className="text-gray-600 dark:text-gray-300">Tidak Tersedia</span>
-                    </div>
+            {/* Info Legend - Clean Minimalist */}
+            <div className="flex flex-wrap gap-6 text-sm justify-center py-3 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                    <span className="text-gray-500">Tersedia</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-900 dark:bg-white"></div>
+                    <span className="text-gray-500">Dipilih</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+                    <span className="text-gray-500">Tidak Tersedia</span>
                 </div>
             </div>
 
-            {/* Controls: Floor & Type Filter */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center border-b border-gray-200 dark:border-gray-700 pb-4">
-                {/* Floor Selector */}
-                <div className="flex gap-2 overflow-x-auto">
+            {/* Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pb-2">
+                {/* Floor Selector - Tab Style */}
+                <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
                     {[1, 2, 3].map(floor => (
                         <button
                             key={floor}
                             onClick={() => setSelectedFloor(floor)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedFloor === floor
-                                ? 'bg-brand-600 text-white shadow-md'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${selectedFloor === floor
+                                ? 'bg-white shadow-sm text-gray-900 dark:bg-gray-700 dark:text-white'
+                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                                 }`}
                         >
                             Lantai {floor}
@@ -138,30 +173,35 @@ const DynamicTableLayout: React.FC<DynamicTableLayoutProps> = ({
                     ))}
                 </div>
 
-                {/* Table Type Filter */}
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</span>
+                {/* Table Type Filter - Minimalist Input */}
+                <div className="relative flex items-center">
                     <select
-                        className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        className="appearance-none pl-3 pr-8 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:border-gray-400 dark:focus:border-gray-600 focus:ring-1 focus:ring-gray-300 dark:focus:ring-gray-600 outline-none text-gray-700 dark:text-gray-300 cursor-pointer hover:border-gray-400 dark:hover:border-gray-600 transition-colors shadow-sm"
                         value={selectedTypeId || ""}
                         onChange={(e) => {
                             const val = e.target.value;
                             setSelectedTypeId(val ? Number(val) : null);
                         }}
                     >
-                        <option value="">Semua Tipe</option>
+                        <option value="">Semua Tipe Meja</option>
                         {tableTypes.map(type => (
                             <option key={type.id} value={type.id}>{type.type_name}</option>
                         ))}
                     </select>
+                    <div className="absolute right-2 pointer-events-none text-gray-400">
+                        <ChevronDown size={16} />
+                    </div>
                 </div>
             </div>
 
-            {/* Grid Layout */}
-            <div className="grid grid-cols-8 gap-2 sm:gap-3 max-w-full mx-auto p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-inner overflow-x-auto min-w-[300px]">
+            {/* Grid Layout - Minimalist Container */}
+            <div className="grid grid-cols-8 gap-3 max-w-full mx-auto p-6 bg-white dark:bg-gray-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-800 overflow-x-auto min-w-[300px]">
                 {renderGrid()}
             </div>
 
+            <p className="text-center text-xs text-gray-400 mt-2">
+                * Klik meja yang tersedia (putih) untuk memilih
+            </p>
         </div>
     );
 };

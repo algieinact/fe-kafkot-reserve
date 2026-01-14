@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { EyeIcon, CheckCircleIcon, CloseIcon } from "../../icons";
+import { Eye, CheckCircle, X } from "lucide-react";
 import { reservationApi } from "../../services/api";
 import { Reservation, ReservationStatus } from "../../types";
 import PageMeta from "../../components/common/PageMeta";
@@ -234,7 +234,7 @@ export default function ManageReservation() {
                             className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                             title="Lihat Bukti Pembayaran"
                         >
-                            <EyeIcon className="w-4 h-4 stroke-current" />
+                            <Eye className="w-4 h-4" />
                         </button>
                     ) : (
                         <span className="text-xs text-gray-400 dark:text-gray-600">-</span>
@@ -263,7 +263,7 @@ export default function ManageReservation() {
                         className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                         title="Lihat Detail"
                     >
-                        <EyeIcon className="w-4 h-4 stroke-current" />
+                        <Eye className="w-4 h-4" />
                     </button>
                     {row.status === 'pending_verification' && (
                         <>
@@ -272,7 +272,7 @@ export default function ManageReservation() {
                                 className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                                 title="Terima Pembayaran"
                             >
-                                <CheckCircleIcon className="w-4 h-4 stroke-current" />
+                                <CheckCircle className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => {
@@ -282,7 +282,7 @@ export default function ManageReservation() {
                                 className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                 title="Tolak Pembayaran"
                             >
-                                <CloseIcon className="w-4 h-4 stroke-current" />
+                                <X className="w-4 h-4" />
                             </button>
                         </>
                     )}
@@ -362,22 +362,20 @@ export default function ManageReservation() {
             </div>
 
             {/* Detail Modal */}
-            <Modal isOpen={showDetailModal && !!selectedReservation} onClose={closeDetailModal} className="max-w-3xl">
+            <Modal isOpen={showDetailModal && !!selectedReservation} onClose={closeDetailModal} className="max-w-3xl p-5 lg:p-10">
                 {selectedReservation && (
-                    <>
-                        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                                Detail Reservasi #{selectedReservation.id}
-                            </h3>
-                        </div>
+                    <div className="space-y-6">
+                        <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
+                            Detail Reservasi #{selectedReservation.id}
+                        </h4>
 
-                        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+                        <div className="max-h-[60vh] overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Customer Info */}
                                 <div>
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                         Informasi Pelanggan
-                                    </h4>
+                                    </h5>
                                     <div className="space-y-2">
                                         <div>
                                             <span className="text-sm text-gray-500 dark:text-gray-400">Nama:</span>
@@ -402,9 +400,9 @@ export default function ManageReservation() {
 
                                 {/* Reservation Info */}
                                 <div>
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                         Informasi Reservasi
-                                    </h4>
+                                    </h5>
                                     <div className="space-y-2">
                                         <div>
                                             <span className="text-sm text-gray-500 dark:text-gray-400">Tanggal:</span>
@@ -440,9 +438,9 @@ export default function ManageReservation() {
                             {/* Order Items */}
                             {selectedReservation.items && selectedReservation.items.length > 0 && (
                                 <div className="mt-6">
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                         Pesanan Menu
-                                    </h4>
+                                    </h5>
                                     <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                                         <table className="w-full">
                                             <thead className="bg-gray-50 dark:bg-gray-800">
@@ -487,9 +485,9 @@ export default function ManageReservation() {
                             {/* Payment Proof */}
                             {selectedReservation.payment_proof_url && (
                                 <div className="mt-6">
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                         Bukti Pembayaran
-                                    </h4>
+                                    </h5>
                                     <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
                                         <img
                                             src={selectedReservation.payment_proof_url}
@@ -503,9 +501,9 @@ export default function ManageReservation() {
                             {/* Rejection Reason */}
                             {selectedReservation.status === "rejected" && selectedReservation.rejection_reason && (
                                 <div className="mt-6">
-                                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                         Alasan Penolakan
-                                    </h4>
+                                    </h5>
                                     <div className="border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
                                         <p className="text-sm text-red-800 dark:text-red-400">
                                             {selectedReservation.rejection_reason}
@@ -515,11 +513,11 @@ export default function ManageReservation() {
                             )}
                         </div>
 
-                        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3 z-10 sticky bottom-0">
+                        <div className="flex items-center justify-end w-full gap-3 mt-6">
                             <Button
                                 onClick={closeDetailModal}
+                                size="sm"
                                 variant="outline"
-                                className="text-gray-700 dark:text-gray-300"
                             >
                                 Tutup
                             </Button>
@@ -527,63 +525,64 @@ export default function ManageReservation() {
                                 <>
                                     <button
                                         onClick={openRejectModal}
-                                        className="px-5 py-3.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
+                                        className="px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
                                     >
                                         Tolak
                                     </button>
                                     <button
                                         onClick={() => confirmVerifyPayment(selectedReservation.id)}
-                                        className="px-5 py-3.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+                                        className="px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
                                     >
                                         Terima
                                     </button>
                                 </>
                             )}
                         </div>
-                    </>
+                    </div>
                 )}
             </Modal>
 
             {/* Reject Modal */}
-            <Modal isOpen={showRejectModal} onClose={closeRejectModal} className="max-w-lg">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            <Modal isOpen={showRejectModal} onClose={closeRejectModal} className="max-w-lg p-5 lg:p-10">
+                <div className="space-y-5">
+                    <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
                         Tolak Pembayaran
-                    </h3>
-                </div>
+                    </h4>
 
-                <div className="px-6 py-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Alasan Penolakan <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                        placeholder="Jelaskan alasan penolakan pembayaran..."
-                        required
-                    />
-                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        Alasan ini akan dikirimkan kepada pelanggan.
-                    </p>
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Alasan Penolakan <span className="text-red-500">*</span>
+                        </label>
+                        <textarea
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                            placeholder="Jelaskan alasan penolakan pembayaran..."
+                            required
+                        />
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Alasan ini akan dikirimkan kepada pelanggan.
+                        </p>
+                    </div>
 
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3">
-                    <Button
-                        onClick={closeRejectModal}
-                        variant="outline"
-                        disabled={processing}
-                    >
-                        Batal
-                    </Button>
-                    <button
-                        onClick={handleRejectPayment}
-                        disabled={!rejectionReason.trim() || processing}
-                        className="px-5 py-3.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
-                    >
-                        {processing ? "Memproses..." : "Tolak Pembayaran"}
-                    </button>
+                    <div className="flex items-center justify-end w-full gap-3 mt-6">
+                        <Button
+                            onClick={closeRejectModal}
+                            size="sm"
+                            variant="outline"
+                            disabled={processing}
+                        >
+                            Batal
+                        </Button>
+                        <button
+                            onClick={handleRejectPayment}
+                            disabled={!rejectionReason.trim() || processing}
+                            className="px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
+                        >
+                            {processing ? "Memproses..." : "Tolak Pembayaran"}
+                        </button>
+                    </div>
                 </div>
             </Modal>
 
@@ -606,15 +605,13 @@ export default function ManageReservation() {
                     setShowImageModal(false);
                     setSelectedImageUrl(null);
                 }}
-                className="max-w-4xl"
+                className="max-w-4xl p-5 lg:p-10"
             >
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                <div className="space-y-5">
+                    <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
                         Bukti Pembayaran
-                    </h3>
-                </div>
+                    </h4>
 
-                <div className="px-6 py-4">
                     {selectedImageUrl && (
                         <div className="flex justify-center">
                             <img
@@ -625,18 +622,19 @@ export default function ManageReservation() {
                             />
                         </div>
                     )}
-                </div>
 
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 flex justify-end">
-                    <Button
-                        onClick={() => {
-                            setShowImageModal(false);
-                            setSelectedImageUrl(null);
-                        }}
-                        variant="outline"
-                    >
-                        Tutup
-                    </Button>
+                    <div className="flex items-center justify-end w-full gap-3 mt-6">
+                        <Button
+                            onClick={() => {
+                                setShowImageModal(false);
+                                setSelectedImageUrl(null);
+                            }}
+                            size="sm"
+                            variant="outline"
+                        >
+                            Tutup
+                        </Button>
+                    </div>
                 </div>
             </Modal>
         </>

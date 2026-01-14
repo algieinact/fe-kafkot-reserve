@@ -8,6 +8,8 @@ import Button from "../../components/ui/button/Button";
 import DataTableOne, { ColumnConfig } from "../../components/tables/DataTables/TableOne/DataTableOne";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { Modal } from "../../components/ui/modal";
+import Label from "../../components/form/Label";
+import Input from "../../components/form/input/InputField";
 
 export default function ManageMenu() {
     const [menus, setMenus] = useState<Menu[]>([]);
@@ -335,37 +337,33 @@ export default function ManageMenu() {
             </div>
 
             {/* Add/Edit Modal */}
-            <Modal isOpen={showModal} onClose={closeModal} className="max-w-lg">
-                <form onSubmit={handleSubmit}>
-                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                            {editingMenu ? "Edit Menu" : "Tambah Menu Baru"}
-                        </h3>
-                    </div>
+            <Modal isOpen={showModal} onClose={closeModal} className="max-w-lg p-5 lg:p-10">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
+                        {editingMenu ? "Edit Menu" : "Tambah Menu Baru"}
+                    </h4>
 
-                    <div className="px-6 py-4 space-y-4">
+                    <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <Label>
                                 Nama Menu <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                            </Label>
+                            <Input
                                 type="text"
                                 value={formData.menu_name}
                                 onChange={(e) => setFormData({ ...formData, menu_name: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                                 placeholder="Contoh: Nasi Goreng Spesial"
-                                required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <Label>
                                 Kategori <span className="text-red-500">*</span>
-                            </label>
+                            </Label>
                             <select
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value as "food" | "drink" | "dessert" })}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
                             >
                                 <option value="food">Food</option>
                                 <option value="drink">Drink</option>
@@ -374,31 +372,28 @@ export default function ManageMenu() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <Label>
                                 Deskripsi <span className="text-red-500">*</span>
-                            </label>
+                            </Label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                                className="w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                                 placeholder="Deskripsi menu..."
-                                required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <Label>
                                 Harga (IDR) <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                            </Label>
+                            <Input
                                 type="number"
                                 value={formData.price}
                                 onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
                                 min="0"
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                                 placeholder="15000"
-                                required
                             />
                         </div>
 
@@ -417,9 +412,9 @@ export default function ManageMenu() {
 
                         {/* Variation Groups Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <Label>
                                 Grup Variasi (Opsional)
-                            </label>
+                            </Label>
                             <div className="border border-gray-300 dark:border-gray-700 rounded-lg p-3 max-h-48 overflow-y-auto">
                                 {variationGroups.length === 0 ? (
                                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -469,15 +464,16 @@ export default function ManageMenu() {
                         </div>
                     </div>
 
-                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3">
+                    <div className="flex items-center justify-end w-full gap-3 mt-6">
                         <Button
                             type="button"
+                            size="sm"
                             onClick={closeModal}
                             variant="outline"
                         >
                             Batal
                         </Button>
-                        <Button type="submit" variant="primary">
+                        <Button type="submit" size="sm" variant="primary">
                             {editingMenu ? "Simpan Perubahan" : "Tambah Menu"}
                         </Button>
                     </div>

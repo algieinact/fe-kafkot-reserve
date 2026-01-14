@@ -163,8 +163,21 @@ const MenuPage: React.FC = () => {
       let hasChanges = false;
 
       selectedMenuDetail.variation_groups.forEach(group => {
-        // If strict required + single choice, auto select the first option
-        if (group.is_required && group.type === "single_choice" && group.options && group.options.length > 0) {
+        // Find options marked as default
+        const defaultOptions = group.options.filter(opt => opt.is_default);
+
+        if (defaultOptions.length > 0) {
+          // If defaults exist, use them
+          if (group.type === "single_choice") {
+            // For single choice, take the first one marked default
+            initialVariations[group.id] = [defaultOptions[0].id];
+          } else {
+            // For multiple choice, include all defaults
+            initialVariations[group.id] = defaultOptions.map(opt => opt.id);
+          }
+          hasChanges = true;
+        } else if (group.is_required && group.type === "single_choice" && group.options && group.options.length > 0) {
+          // If strict required + single choice but NO default set, auto select the first option
           initialVariations[group.id] = [group.options[0].id];
           hasChanges = true;
         }

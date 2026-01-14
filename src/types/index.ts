@@ -116,6 +116,8 @@ export interface Table {
   position_x: number;
   position_y: number;
   orientation: "horizontal" | "vertical";
+  span_x?: number; // NEW: Horizontal span for merged cells (default 1)
+  span_y?: number; // NEW: Vertical span for merged cells (default 1)
   is_available_for_booking?: boolean;
   status: TableStatus;
   created_at: string;
@@ -248,6 +250,8 @@ export interface TableFormData {
   position_x?: number;
   position_y?: number;
   orientation?: "horizontal" | "vertical";
+  span_x?: number; // NEW: Horizontal span for merged cells
+  span_y?: number; // NEW: Vertical span for merged cells
 }
 
 // Cart Types

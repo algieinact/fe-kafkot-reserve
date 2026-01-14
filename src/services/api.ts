@@ -411,11 +411,26 @@ export const tableApi = {
     return handleResponse<void>(response);
   },
 
-  updateTablePosition: async (id: string, floor: number, x: number, y: number, orientation?: "horizontal" | "vertical"): Promise<ApiResponse<Table>> => {
+  updateTablePosition: async (
+    id: string,
+    floor: number,
+    x: number,
+    y: number,
+    orientation?: "horizontal" | "vertical",
+    spanX?: number,
+    spanY?: number
+  ): Promise<ApiResponse<Table>> => {
     const response = await fetch(`${API_BASE_URL}/admin/tables/${id}/position`, {
       method: "PUT",
       headers: createHeaders(true),
-      body: JSON.stringify({ floor, position_x: x, position_y: y, orientation }),
+      body: JSON.stringify({
+        floor,
+        position_x: x,
+        position_y: y,
+        orientation,
+        span_x: spanX,
+        span_y: spanY
+      }),
     });
     return handleResponse<Table>(response);
   },
