@@ -8,6 +8,7 @@ import DataTableOne, { ColumnConfig } from "../../components/tables/DataTables/T
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
+import { DataTableSkeleton } from "../../components/ui/skeleton";
 
 export default function ManageReservation() {
     const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -340,12 +341,7 @@ export default function ManageReservation() {
 
                 {/* Data Table */}
                 {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="text-center">
-                            <div className="animate-spin h-12 w-12 border-4 border-brand-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                            <p className="text-gray-600 dark:text-gray-400">Memuat data...</p>
-                        </div>
-                    </div>
+                    <DataTableSkeleton />
                 ) : (
                     <DataTableOne
                         title="Daftar Reservasi"

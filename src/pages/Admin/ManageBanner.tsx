@@ -11,6 +11,7 @@ import Input from "../../components/form/input/InputField";
 import BannerDropZone from "../../components/form/form-elements/BannerDropZone";
 import { Banner } from "../../types";
 import { bannerApi } from "../../services/api";
+import { DataTableSkeleton } from "../../components/ui/skeleton";
 
 interface BannerFormData {
   title: string;
@@ -268,12 +269,7 @@ export default function ManageBanner() {
           description="Kelola banner carousel halaman menu"
         />
         <PageBreadcrumb pageTitle="Kelola Banner" />
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin h-12 w-12 border-4 border-brand-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Memuat data...</p>
-          </div>
-        </div>
+        <DataTableSkeleton />
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import PageMeta from "../../components/common/PageMeta";
 import AuthLayout from "../AuthPages/AuthPageLayout";
 import SignInForm from "../../components/auth/SignInForm";
+import { Skeleton } from "../../components/ui/skeleton";
 
 export default function LoginPage() {
     const { isAuthenticated, isLoading } = useAuth();
@@ -19,10 +20,24 @@ export default function LoginPage() {
     // Show loading while checking auth
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-                <div className="text-center">
-                    <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
-                    <p className="mt-4 text-gray-600 dark:text-gray-400">Memuat...</p>
+            <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+                <div className="w-full max-w-sm space-y-8 rounded-2xl bg-white p-8 shadow-sm dark:bg-gray-800">
+                    <div className="text-center space-y-2">
+                        <Skeleton className="h-10 w-10 mx-auto rounded-full" />
+                        <Skeleton className="h-8 w-48 mx-auto" />
+                        <Skeleton className="h-4 w-64 mx-auto" />
+                    </div>
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-12 w-full rounded-lg" />
+                        </div>
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-16" />
+                            <Skeleton className="h-12 w-full rounded-lg" />
+                        </div>
+                        <Skeleton className="h-12 w-full rounded-lg" />
+                    </div>
                 </div>
             </div>
         );

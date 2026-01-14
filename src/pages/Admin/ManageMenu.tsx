@@ -10,6 +10,7 @@ import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { Modal } from "../../components/ui/modal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
+import { DataTableSkeleton } from "../../components/ui/skeleton";
 
 export default function ManageMenu() {
     const [menus, setMenus] = useState<Menu[]>([]);
@@ -286,12 +287,7 @@ export default function ManageMenu() {
                     description="Kelola menu makanan dan minuman restoran"
                 />
                 <PageBreadcrumb pageTitle="Kelola Menu" />
-                <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                        <div className="animate-spin h-12 w-12 border-4 border-brand-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-gray-600 dark:text-gray-400">Memuat data...</p>
-                    </div>
-                </div>
+                <DataTableSkeleton />
             </div>
         );
     }

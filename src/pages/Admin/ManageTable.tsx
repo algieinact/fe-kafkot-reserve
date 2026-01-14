@@ -11,6 +11,7 @@ import { Modal } from "../../components/ui/modal";
 import TableLayoutEditor from "../../components/tables/TableLayoutEditor";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
+import { DataTableSkeleton, StatsCardSkeleton } from "../../components/ui/skeleton";
 
 export default function ManageTable() {
     const [tables, setTables] = useState<Table[]>([]);
@@ -299,7 +300,16 @@ export default function ManageTable() {
         }
     ], []);
 
-    if (loading) return <div className="p-10 text-center">Memuat data...</div>;
+    if (loading) {
+        return (
+            <div className="space-y-5 sm:space-y-6">
+                <PageMeta title="Kelola Meja" description="Manajemen layout dan data meja restoran" />
+                <PageBreadcrumb pageTitle="Kelola Meja" />
+                <StatsCardSkeleton count={3} />
+                <DataTableSkeleton />
+            </div>
+        );
+    }
 
     // Statistics
     const totalTables = tables.length;

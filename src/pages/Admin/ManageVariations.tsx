@@ -9,6 +9,7 @@ import { Modal } from "../../components/ui/modal";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
+import { CardSkeleton } from "../../components/ui/skeleton";
 
 
 export default function ManageVariations() {
@@ -239,11 +240,13 @@ export default function ManageVariations() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                    <div className="animate-spin h-12 w-12 border-4 border-brand-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Memuat data...</p>
-                </div>
+            <div className="space-y-5 sm:space-y-6">
+                <PageMeta
+                    title="Kelola Variasi | Reservasi Ruang Dugamasa"
+                    description="Kelola grup variasi dan opsi untuk menu"
+                />
+                <PageBreadcrumb pageTitle="Kelola Variasi" />
+                <CardSkeleton count={3} />
             </div>
         );
     }

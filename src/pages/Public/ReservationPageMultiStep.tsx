@@ -119,14 +119,22 @@ const ReservationPageMultiStep: React.FC = () => {
             newErrors.customer_name = "Nama minimal 2 karakter";
         }
 
-        const emailValidation = validateEmail(formData.customer_email);
-        if (typeof emailValidation === 'string') {
-            newErrors.customer_email = emailValidation;
+        if (!formData.customer_email.trim()) {
+            newErrors.customer_email = "Email wajib diisi";
+        } else {
+            const emailValidation = validateEmail(formData.customer_email);
+            if (typeof emailValidation === 'string') {
+                newErrors.customer_email = emailValidation;
+            }
         }
 
-        const phoneValidation = validatePhone(formData.customer_phone);
-        if (typeof phoneValidation === 'string') {
-            newErrors.customer_phone = phoneValidation;
+        if (!formData.customer_phone.trim()) {
+            newErrors.customer_phone = "Nomor telepon wajib diisi";
+        } else {
+            const phoneValidation = validatePhone(formData.customer_phone);
+            if (typeof phoneValidation === 'string') {
+                newErrors.customer_phone = phoneValidation;
+            }
         }
 
         setErrors(newErrors);
@@ -136,20 +144,24 @@ const ReservationPageMultiStep: React.FC = () => {
     const validateStep2 = (): boolean => {
         const newErrors: Record<string, string> = {};
 
-        const dateValidation = validateReservationDate(formData.reservation_date);
-        if (dateValidation !== true) {
-            newErrors.reservation_date = dateValidation;
+        if (!formData.reservation_date) {
+            newErrors.reservation_date = "Tanggal reservasi wajib dipilih";
+        } else {
+            const dateValidation = validateReservationDate(formData.reservation_date);
+            if (dateValidation !== true) {
+                newErrors.reservation_date = dateValidation;
+            }
         }
 
         if (!startTime) {
-            newErrors.startTime = "Pilih jam mulai terlebih dahulu";
+            newErrors.startTime = "Jam mulai wajib dipilih";
         }
 
         if (!endTime) {
-            newErrors.endTime = "Pilih jam selesai terlebih dahulu";
+            newErrors.endTime = "Jam selesai wajib dipilih";
         }
 
-        if (duration <= 0 || duration > 5) {
+        if (startTime && endTime && (duration <= 0 || duration > 5)) {
             newErrors.duration = "Durasi harus antara 0.5 - 5 jam";
         }
 
@@ -241,6 +253,7 @@ const ReservationPageMultiStep: React.FC = () => {
     const handleNext = async () => {
         if (currentStep === 1) {
             if (validateStep1()) {
+                setErrors({});
                 setCurrentStep(2);
             }
         } else if (currentStep === 2) {
@@ -249,9 +262,10 @@ const ReservationPageMultiStep: React.FC = () => {
             }
         } else if (currentStep === 3) {
             if (!selectedTable) {
-                setErrors({ table: "Pilih meja terlebih dahulu" });
+                setErrors({ table: "Silakan pilih meja terlebih dahulu untuk melanjutkan" });
                 return;
             }
+            setErrors({});
             setCurrentStep(4);
         }
     };
