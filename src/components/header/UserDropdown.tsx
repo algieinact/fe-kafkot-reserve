@@ -22,16 +22,6 @@ export default function UserDropdown() {
     navigate("/signin");
   };
 
-  // Get user initials for avatar fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <div className="relative">
       <button
