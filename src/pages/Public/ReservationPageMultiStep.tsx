@@ -9,7 +9,6 @@ import {
 } from "../../utils/validators";
 import { formatCurrency } from "../../utils/formatters";
 import { Card, CardTitle } from "../../components/ui/card";
-import Button from "../../components/ui/button/Button";
 import DatePicker from "../../components/form/date-picker";
 import { reservationStorage } from "../../services/localStorage";
 import DynamicTableLayout from "../../components/reservation/DynamicTableLayout";
@@ -376,8 +375,8 @@ const ReservationPageMultiStep: React.FC = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                 <div className="mb-8">
-                    <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">Reservasi Meja</h1>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <h1 className="mb-2 text-xl font-bold text-gray-900 dark:text-white sm:text-3xl">Reservasi Meja</h1>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                         Lengkapi form di bawah untuk melanjutkan reservasi
                     </p>
                 </div>
@@ -585,21 +584,21 @@ const ReservationPageMultiStep: React.FC = () => {
                                     <div className="mt-6 space-y-6">
                                         {/* Bank Info */}
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4 sm:text-lg">
                                                 Informasi Transfer
                                             </h3>
                                             <div className="space-y-3">
                                                 <div className="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
-                                                    <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Bank:</div>
-                                                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                    <div className="mb-2 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">Bank:</div>
+                                                    <div className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                                                         Bank Central Asia (BCA)
                                                     </div>
                                                 </div>
 
                                                 <div className="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
-                                                    <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Nomor Rekening:</div>
+                                                    <div className="mb-2 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">Nomor Rekening:</div>
                                                     <div className="flex items-center justify-between">
-                                                        <div className="text-2xl font-bold text-gray-900 dark:text-white">1234567890</div>
+                                                        <div className="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">1234567890</div>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
@@ -614,15 +613,15 @@ const ReservationPageMultiStep: React.FC = () => {
                                                 </div>
 
                                                 <div className="rounded-lg bg-brand-50 p-4 dark:bg-brand-500/10">
-                                                    <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Atas Nama:</div>
-                                                    <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                    <div className="mb-2 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">Atas Nama:</div>
+                                                    <div className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                                                         PT Ruang Dugamasa Indonesia
                                                     </div>
                                                 </div>
 
                                                 <div className="rounded-lg bg-warning-50 p-4 dark:bg-warning-900/20">
-                                                    <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">Total yang Harus Dibayar:</div>
-                                                    <div className="text-3xl font-bold text-warning-600 dark:text-warning-400">
+                                                    <div className="mb-2 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">Total yang Harus Dibayar:</div>
+                                                    <div className="text-2xl font-bold text-warning-600 dark:text-warning-400 sm:text-3xl">
                                                         {formatCurrency(totalPrice)}
                                                     </div>
                                                 </div>
@@ -631,10 +630,10 @@ const ReservationPageMultiStep: React.FC = () => {
 
                                         {/* Instructions */}
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4 sm:text-lg">
                                                 Instruksi Pembayaran
                                             </h3>
-                                            <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                                            <div className="space-y-3 text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                                                 <div className="flex gap-3">
                                                     <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">1</div>
                                                     <div>Transfer sejumlah <strong className="text-gray-900 dark:text-white">{formatCurrency(totalPrice)}</strong> ke rekening yang tertera di atas</div>
@@ -656,7 +655,7 @@ const ReservationPageMultiStep: React.FC = () => {
 
                                         {/* Upload */}
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4 sm:text-lg">
                                                 Upload Bukti Pembayaran
                                             </h3>
                                             <div className="space-y-4">
@@ -717,31 +716,31 @@ const ReservationPageMultiStep: React.FC = () => {
                             {/* Navigation Buttons */}
                             <div className="mt-6 flex justify-between">
                                 {currentStep > 1 && (
-                                    <Button
+                                    <button
                                         onClick={handleBack}
-                                        variant="outline"
                                         disabled={submitting}
+                                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm text-gray-700 ring-1 ring-inset ring-gray-300 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300 sm:px-5 sm:py-3"
                                     >
                                         Kembali
-                                    </Button>
+                                    </button>
                                 )}
 
                                 {currentStep < 4 ? (
-                                    <Button
+                                    <button
                                         onClick={handleNext}
                                         disabled={checkingAvailability}
-                                        className={currentStep === 1 ? "ml-auto" : ""}
+                                        className={`inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm text-white shadow-theme-xs transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-brand-300 disabled:opacity-50 sm:px-5 sm:py-3 ${currentStep === 1 ? "ml-auto" : ""}`}
                                     >
                                         {checkingAvailability ? "Memeriksa..." : "Lanjut"}
-                                    </Button>
+                                    </button>
                                 ) : (
-                                    <Button
+                                    <button
                                         onClick={handleSubmit}
                                         disabled={submitting}
-                                        className="ml-auto"
+                                        className="ml-auto inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm text-white shadow-theme-xs transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-brand-300 disabled:opacity-50 sm:px-5 sm:py-3"
                                     >
                                         {submitting ? "Memproses..." : "Konfirmasi Reservasi"}
-                                    </Button>
+                                    </button>
                                 )}
                             </div>
                         </Card>
@@ -783,7 +782,7 @@ const ReservationPageMultiStep: React.FC = () => {
                                         <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
                                             <div className="flex items-center justify-between">
                                                 <div className="font-semibold text-gray-900 dark:text-white">Total</div>
-                                                <div className="text-xl font-bold text-brand-500">{formatCurrency(totalPrice)}</div>
+                                                <div className="text-base font-bold text-brand-500 sm:text-xl">{formatCurrency(totalPrice)}</div>
                                             </div>
                                         </div>
                                     </>

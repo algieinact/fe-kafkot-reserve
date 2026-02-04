@@ -150,7 +150,7 @@ const AppSidebar = () => {
           {isExpanded || isHovered || isMobileOpen ? (
             <div className="flex items-center">
               <img
-                src="/images/logo/logo-icon.svg"
+                src="/images/logo/logo-rdgms.png"
                 alt="Logo"
                 className="w-8 h-8"
               />
@@ -158,7 +158,7 @@ const AppSidebar = () => {
             </div>
           ) : (
             <img
-              src="/images/logo/logo-icon.svg"
+              src="/images/logo/logo-rdgms.png"
               alt="Logo"
               className="w-8 h-8"
             />

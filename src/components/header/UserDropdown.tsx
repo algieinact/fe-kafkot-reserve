@@ -39,13 +39,11 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center">
-          {user?.name ? (
-            <span className="text-brand-600 dark:text-brand-400 font-semibold text-sm">
-              {getInitials(user.name)}
-            </span>
-          ) : (
-            <img src="/images/user/global.png" alt="User" />
-          )}
+          <img
+            src="/images/icons/profile-icon.png"
+            alt="User"
+            className="h-full w-full object-cover"
+          />
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">

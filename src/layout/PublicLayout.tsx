@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, Link } from "react-router";
 
 const PublicLayout: React.FC = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
@@ -10,10 +11,14 @@ const PublicLayout: React.FC = () => {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500">
-                <span className="text-xl font-bold text-white">R</span>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg">
+                <img
+                  src="/images/logo/logo-rdgms.png"
+                  alt="Logo"
+                  className="w-8 h-8"
+                />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+              <span className="text-lg font-bold text-gray-900 dark:text-white sm:text-xl">
                 Ruang Dugamasa
               </span>
             </Link>
@@ -22,25 +27,25 @@ const PublicLayout: React.FC = () => {
             <nav className="hidden md:flex items-center gap-8">
               <Link
                 to="/"
-                className="text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400"
+                className="text-xs font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400 sm:text-sm"
               >
                 Beranda
               </Link>
               <Link
                 to="/history"
-                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400"
+                className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400 sm:text-sm"
               >
-                <svg 
-                  className="h-5 w-5" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
                 Riwayat
@@ -54,7 +59,10 @@ const PublicLayout: React.FC = () => {
             </nav>
 
             {/* Mobile Menu Button */}
-            <button className="md:hidden rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+            >
               <svg
                 className="h-6 w-6"
                 fill="none"
@@ -70,6 +78,41 @@ const PublicLayout: React.FC = () => {
               </svg>
             </button>
           </div>
+
+          {/* Mobile Menu Dropdown */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-dark">
+              <nav className="flex flex-col space-y-1 px-4 py-3">
+                <Link
+                  to="/"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg dark:text-gray-300 dark:hover:text-brand-400 dark:hover:bg-white/5"
+                >
+                  Beranda
+                </Link>
+                <Link
+                  to="/history"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg dark:text-gray-300 dark:hover:text-brand-400 dark:hover:bg-white/5"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Riwayat
+                </Link>
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
@@ -84,10 +127,10 @@ const PublicLayout: React.FC = () => {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* About */}
             <div>
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                 Tentang Ruang DugaMasa
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                 Cafe nyaman dengan berbagai pilihan menu lezat. Reservasi mudah, pembayaran
                 fleksibel.
               </p>
@@ -95,12 +138,12 @@ const PublicLayout: React.FC = () => {
 
             {/* Contact */}
             <div>
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                 Kontak
               </h3>
-              <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+              <ul className="space-y-2 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                 <li className="flex items-center gap-2">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -111,7 +154,7 @@ const PublicLayout: React.FC = () => {
                   <span>0812-3456-7890</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -122,7 +165,7 @@ const PublicLayout: React.FC = () => {
                   <span>info@ruangdugamasa.com</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <svg className="mt-0.5 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -143,10 +186,10 @@ const PublicLayout: React.FC = () => {
 
             {/* Opening Hours */}
             <div>
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="mb-4 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                 Jam Operasional
               </h3>
-              <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+              <ul className="space-y-2 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                 <li className="flex justify-between">
                   <span>Senin - Jumat</span>
                   <span className="font-medium">10:00 - 22:00</span>
@@ -161,7 +204,7 @@ const PublicLayout: React.FC = () => {
 
           {/* Copyright */}
           <div className="mt-8 border-t border-gray-200 pt-8 dark:border-gray-800">
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-center text-[11px] text-gray-500 dark:text-gray-400 sm:text-xs">
               © {new Date().getFullYear()} Ruang Dugamasa. All rights reserved.
             </p>
           </div>

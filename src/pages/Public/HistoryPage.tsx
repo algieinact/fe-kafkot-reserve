@@ -107,7 +107,7 @@ const HistoryPage: React.FC = () => {
 
     const config = statusMap[status] || statusMap.pending_verification;
     return (
-      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${config.bg} ${config.text}`}>
+      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${config.bg} ${config.text} sm:px-3 sm:py-1 sm:text-xs`}>
         {config.label}
       </span>
     );
@@ -146,43 +146,42 @@ const HistoryPage: React.FC = () => {
       <div className="mx-auto max-w-4xl px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900">Riwayat Reservasi</h1>
-          <p className="text-gray-600">
+          <h1 className="mb-2 text-xl font-bold text-gray-900 sm:text-3xl">Riwayat Reservasi</h1>
+          <p className="text-xs text-gray-600 sm:text-sm">
             Lihat semua reservasi yang pernah Anda buat di browser ini
           </p>
         </div>
 
         {/* Empty State */}
         {reservations.length === 0 && (
-          <Card>
-            <div className="py-16 text-center">
-              <svg
-                className="mx-auto h-16 w-16 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900">
-                Belum Ada Reservasi
-              </h3>
-              <p className="mt-2 text-gray-600">
-                Anda belum pernah membuat reservasi di browser ini
-              </p>
-              <a
-                href="/menu"
-                className="mt-6 inline-block rounded-lg bg-brand-500 px-6 py-3 text-white transition hover:bg-brand-600"
-              >
-                Buat Reservasi
-              </a>
-            </div>
-          </Card>
+
+          <div className="py-16 text-center">
+            <svg
+              className="mx-auto h-16 w-16 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            <h3 className="mt-4 text-base font-semibold text-gray-900 sm:text-lg">
+              Belum Ada Reservasi
+            </h3>
+            <p className="mt-2 text-xs text-gray-600 sm:text-sm">
+              Anda belum pernah membuat reservasi di browser ini
+            </p>
+            <a
+              href="/menu"
+              className="mt-6 inline-block rounded-lg bg-brand-500 px-5 py-2.5 text-sm text-white transition hover:bg-brand-600 sm:px-6 sm:py-3"
+            >
+              Buat Reservasi
+            </a>
+          </div>
         )}
 
         {/* Reservations List */}
@@ -193,10 +192,10 @@ const HistoryPage: React.FC = () => {
                 {/* Header */}
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
                       {reservation.bookingCode}
                     </h3>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-xs text-gray-600 sm:text-sm">
                       {reservation.customerName}
                     </p>
                   </div>
@@ -284,8 +283,8 @@ const HistoryPage: React.FC = () => {
                     ))}
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-gray-200 pt-3">
-                    <span className="font-semibold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-brand-500">
+                    <span className="text-sm font-semibold text-gray-900 sm:text-base">Total</span>
+                    <span className="text-base font-bold text-brand-500 sm:text-lg">
                       {formatCurrency(reservation.totalAmount)}
                     </span>
                   </div>

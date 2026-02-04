@@ -298,7 +298,6 @@ export default function ManageReservation() {
         { label: "Dikonfirmasi", value: "confirmed" },
         { label: "Ditolak", value: "rejected" },
         { label: "Selesai", value: "completed" },
-        { label: "Dibatalkan", value: "cancelled" },
     ];
 
     return (

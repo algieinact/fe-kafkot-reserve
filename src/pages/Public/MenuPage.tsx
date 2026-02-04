@@ -4,7 +4,6 @@ import { Menu, MenuCategory, Banner, MenuWithVariations, SelectedVariation } fro
 import { useCart } from "../../context/CartContext";
 import { formatCurrency, formatMenuCategory } from "../../utils/formatters";
 
-import Button from "../../components/ui/button/Button";
 import { menuApi, bannerApi } from "../../services/api";
 
 const MenuPage: React.FC = () => {
@@ -335,8 +334,8 @@ const MenuPage: React.FC = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white sm:p-8">
-                    <h2 className="mb-2 text-2xl font-bold sm:text-3xl md:text-4xl">{banner.title}</h2>
-                    <p className="text-sm sm:text-base md:text-lg">{banner.subtitle}</p>
+                    <h2 className="mb-2 text-xl font-bold sm:text-2xl md:text-4xl">{banner.title}</h2>
+                    <p className="text-xs sm:text-sm md:text-lg">{banner.subtitle}</p>
                   </div>
                 </div>
               ))}
@@ -345,7 +344,7 @@ const MenuPage: React.FC = () => {
             {/* Carousel Controls */}
             <button
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-800 shadow-lg transition hover:bg-white"
+              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-800 shadow-lg transition hover:bg-white hidden sm:flex"
             >
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -353,7 +352,7 @@ const MenuPage: React.FC = () => {
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-800 shadow-lg transition hover:bg-white"
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-800 shadow-lg transition hover:bg-white hidden sm:flex"
             >
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -376,10 +375,10 @@ const MenuPage: React.FC = () => {
 
         {/* Header */}
         <div className="mb-0 py-6">
-          <h1 className="mb-2 text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="mb-2 text-xl font-bold text-gray-900 dark:text-white sm:text-3xl">
             Menu Kami
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
             Pilih menu favorit Anda untuk reservasi
           </p>
         </div>
@@ -401,7 +400,7 @@ const MenuPage: React.FC = () => {
           <div className="flex gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setSelectedCategory("all")}
-              className={`whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${selectedCategory === "all"
+              className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "all"
                 ? "bg-brand-500 text-white"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
@@ -410,7 +409,7 @@ const MenuPage: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedCategory("drink")}
-              className={`whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${selectedCategory === "drink"
+              className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "drink"
                 ? "bg-brand-500 text-white"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
@@ -419,7 +418,7 @@ const MenuPage: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedCategory("food")}
-              className={`whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${selectedCategory === "food"
+              className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "food"
                 ? "bg-brand-500 text-white"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
@@ -428,7 +427,7 @@ const MenuPage: React.FC = () => {
             </button>
             <button
               onClick={() => setSelectedCategory("dessert")}
-              className={`whitespace-nowrap rounded-lg px-5 py-2.5 text-sm font-medium transition-colors ${selectedCategory === "dessert"
+              className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "dessert"
                 ? "bg-brand-500 text-white"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
@@ -514,10 +513,10 @@ const MenuPage: React.FC = () => {
 
                   {/* Product Info - Minimal */}
                   <div className="px-2 py-2 bg-white dark:bg-gray-800">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-1 mb-1">
+                    <h3 className="text-xs font-semibold text-gray-900 dark:text-white line-clamp-1 mb-1 sm:text-sm">
                       {menu.menu_name}
                     </h3>
-                    <p className="text-brand-500 font-bold text-base">
+                    <p className="text-brand-500 font-bold text-sm sm:text-base">
                       {formatCurrency(menu.price)}
                     </p>
                   </div>
@@ -554,31 +553,33 @@ const MenuPage: React.FC = () => {
 
         {/* Floating Cart Summary */}
         {totalItems > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white p-4 shadow-lg dark:border-gray-800 dark:bg-gray-dark">
-            <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white p-2.5 shadow-lg dark:border-gray-800 dark:bg-gray-dark sm:p-4">
+            <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4">
               <button
                 onClick={() => setShowCartModal(true)}
-                className="flex items-center gap-3 rounded-lg bg-gray-100 px-4 py-2 transition hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+                className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 transition hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 sm:gap-3 sm:px-4 sm:py-2"
               >
                 <div className="relative">
-                  <svg className="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5 text-gray-700 dark:text-gray-300 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white sm:-right-2 sm:-top-2 sm:h-5 sm:w-5 sm:text-xs">
                     {totalItems}
                   </span>
                 </div>
                 <div className="text-left">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className="text-[11px] text-gray-600 dark:text-gray-400 sm:text-xs">
                     {totalItems} item{totalItems > 1 ? "s" : ""}
                   </div>
-                  <div className="text-sm font-bold text-gray-900 dark:text-white">
+                  <div className="text-xs font-bold text-gray-900 dark:text-white sm:text-sm">
                     {formatCurrency(totalPrice)}
                   </div>
                 </div>
               </button>
               <Link to="/reservation">
-                <Button size="md">Lanjut ke Reservasi</Button>
+                <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm text-white shadow-theme-xs transition hover:bg-brand-600 sm:px-5 sm:py-3">
+                  Reservasi
+                </button>
               </Link>
             </div>
           </div>
@@ -591,10 +592,10 @@ const MenuPage: React.FC = () => {
               {/* Header */}
               <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5 dark:border-gray-800">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white sm:text-base">
                     Keranjang Belanja
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 sm:text-xs">
                     {totalItems} item
                   </p>
                 </div>
@@ -622,7 +623,7 @@ const MenuPage: React.FC = () => {
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-gray-900 dark:text-white mb-1 truncate">
+                        <h4 className="font-medium text-xs text-gray-900 dark:text-white mb-1 truncate sm:text-sm">
                           {item.menu.menu_name}
                         </h4>
 
@@ -638,7 +639,7 @@ const MenuPage: React.FC = () => {
                         )}
 
                         <div className="flex items-center justify-between mt-2">
-                          <p className="text-sm font-semibold text-brand-500">
+                          <p className="text-xs font-semibold text-brand-500 sm:text-sm">
                             {formatCurrency((item.total_price || 0) / item.quantity)}
                           </p>
 
@@ -687,8 +688,8 @@ const MenuPage: React.FC = () => {
               {/* Footer */}
               <div className="border-t border-gray-100 px-5 py-3.5 dark:border-gray-800">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Total</span>
-                  <span className="text-xl font-bold text-brand-500">{formatCurrency(totalPrice)}</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">Total</span>
+                  <span className="text-base font-bold text-brand-500 sm:text-xl">{formatCurrency(totalPrice)}</span>
                 </div>
                 <Link to="/reservation" onClick={() => setShowCartModal(false)}>
                   <button className="w-full rounded-lg bg-brand-500 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600">
@@ -709,10 +710,10 @@ const MenuPage: React.FC = () => {
               {/* Modal Header */}
               <div className="border-b border-gray-100 px-5 py-3.5 dark:border-gray-800 flex items-center justify-between">
                 <div className="flex-1 pr-2">
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white sm:text-base">
                     {selectedMenuDetail.menu_name}
                   </h3>
-                  <p className="text-sm text-brand-500 font-medium mt-0.5">
+                  <p className="text-xs text-brand-500 font-medium mt-0.5 sm:text-sm">
                     {formatCurrency(selectedMenuDetail.price)}
                   </p>
                 </div>
@@ -751,11 +752,11 @@ const MenuPage: React.FC = () => {
                   {selectedMenuDetail.variation_groups?.map((group, groupIndex) => (
                     <div key={group.id} className={`${groupIndex > 0 ? 'pt-4 border-t border-gray-100 dark:border-gray-800' : ''}`}>
                       <div className="mb-3">
-                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                        <h4 className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm">
                           {group.name}
                           {group.is_required && <span className="text-error-500 ml-1">*</span>}
                         </h4>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 sm:text-[11px]">
                           {group.type === "single_choice" ? "Pilih salah satu" : "Bisa pilih lebih dari satu"}
                         </p>
                       </div>
@@ -789,12 +790,12 @@ const MenuPage: React.FC = () => {
                                   onChange={() => handleVariationChange(group.id, option.id, group.type)}
                                   className="sr-only"
                                 />
-                                <span className={`text-sm ${isSelected ? 'font-medium text-brand-700 dark:text-brand-300' : 'text-gray-900 dark:text-white'}`}>
+                                <span className={`text-xs ${isSelected ? 'font-medium text-brand-700 dark:text-brand-300' : 'text-gray-900 dark:text-white'} sm:text-sm`}>
                                   {option.name}
                                 </span>
                               </div>
                               {option.price_adjustment > 0 && (
-                                <span className="text-xs font-medium text-brand-500 ml-2">
+                                <span className="text-[11px] font-medium text-brand-500 ml-2 sm:text-xs">
                                   +{formatCurrency(option.price_adjustment)}
                                 </span>
                               )}
@@ -811,7 +812,7 @@ const MenuPage: React.FC = () => {
               <div className="border-t border-gray-100 px-5 py-3.5 dark:border-gray-800">
                 {/* Quantity Selector */}
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">Jumlah</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white sm:text-sm">Jumlah</span>
                   <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
                     <button
                       onClick={() => setModalQuantity(Math.max(1, modalQuantity - 1))}
@@ -822,7 +823,7 @@ const MenuPage: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                       </svg>
                     </button>
-                    <span className="text-sm font-semibold w-6 text-center text-gray-900 dark:text-white">
+                    <span className="text-xs font-semibold w-6 text-center text-gray-900 dark:text-white sm:text-sm">
                       {modalQuantity}
                     </span>
                     <button

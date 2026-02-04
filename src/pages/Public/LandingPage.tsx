@@ -11,14 +11,14 @@ const LandingPage: React.FC = () => {
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-8">
             {/* Text Content */}
             <div className="flex flex-col justify-center">
-              <h1 className="mb-6 text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
+              <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white sm:text-4xl lg:text-6xl">
                 Reservasi Mudah,
                 <br />
                 <span className="bg-gradient-to-r from-brand-500 to-blue-light-500 bg-clip-text text-transparent">
                   Pengalaman Berkesan
                 </span>
               </h1>
-              <p className="mb-8 text-lg text-gray-600 dark:text-gray-300">
+              <p className="mb-8 text-sm text-gray-600 dark:text-gray-300 sm:text-base lg:text-lg">
                 Nikmati kopi pilihan dan makanan lezat di cafe Kafkot. Reservasi online dalam
                 hitungan menit, tanpa ribet.
               </p>
@@ -63,10 +63,10 @@ const LandingPage: React.FC = () => {
       <section className="py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+            <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white sm:text-3xl md:text-4xl">
               Kenapa Pilih Ruang Dugamasa?
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-600 dark:text-gray-400 sm:text-base lg:text-lg">
               Pengalaman reservasi yang mudah dan nyaman
             </p>
           </div>
@@ -89,10 +89,10 @@ const LandingPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+              <h3 className="mb-2 text-base font-semibold text-gray-900 dark:text-white sm:text-xl">
                 Reservasi Cepat
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                 Proses reservasi dalam hitungan menit. Pilih tanggal, waktu, dan meja favorit Anda.
               </p>
             </div>
@@ -114,10 +114,10 @@ const LandingPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+              <h3 className="mb-2 text-base font-semibold text-gray-900 dark:text-white sm:text-xl">
                 Konfirmasi Langsung
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                 Dapatkan konfirmasi reservasi langsung setelah verifikasi pembayaran.
               </p>
             </div>
@@ -139,10 +139,10 @@ const LandingPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-gray-900 dark:text-white">
+              <h3 className="mb-2 text-base font-semibold text-gray-900 dark:text-white sm:text-xl">
                 Pesan Menu Sebelumnya
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
                 Pilih menu favorit Anda sebelum datang untuk pengalaman yang lebih efisien.
               </p>
             </div>
@@ -153,10 +153,10 @@ const LandingPage: React.FC = () => {
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-brand-500 to-blue-light-500 py-16">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
+          <h2 className="mb-4 text-xl font-bold text-white sm:text-3xl md:text-4xl">
             Siap Reservasi Meja Anda?
           </h2>
-          <p className="mb-8 text-lg text-white/90">
+          <p className="mb-8 text-sm text-white/90 sm:text-base lg:text-lg">
             Mulai reservasi sekarang dan nikmati pengalaman kuliner yang berkesan
           </p>
           <Link to="/reservation">
@@ -181,7 +181,7 @@ const LandingPage: React.FC = () => {
           <div className="grid gap-8 md:grid-cols-2">
             {/* Locations */}
             <div className="rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-white/[0.03]">
-              <h3 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+              <h3 className="mb-6 text-lg font-bold text-gray-900 dark:text-white sm:text-2xl">
                 Pilihan Tempat Duduk
               </h3>
               <div className="space-y-4">
@@ -223,7 +223,7 @@ const LandingPage: React.FC = () => {
 
             {/* Operating Hours */}
             <div className="rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-white/[0.03]">
-              <h3 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
+              <h3 className="mb-6 text-lg font-bold text-gray-900 dark:text-white sm:text-2xl">
                 Jam Operasional
               </h3>
               <div className="space-y-4">
