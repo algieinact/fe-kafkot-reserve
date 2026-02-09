@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { menuApi, variationApi } from "../../services/api";
-import { Menu, MenuFormData, VariationGroup } from "../../types";
+import { menuApi, variationApi, categoryApi } from "../../services/api";
+import { Menu, MenuFormData, VariationGroup, Category } from "../../types";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Button from "../../components/ui/button/Button";
@@ -14,13 +14,14 @@ import { DataTableSkeleton } from "../../components/ui/skeleton";
 
 export default function ManageMenu() {
     const [menus, setMenus] = useState<Menu[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
     const [formData, setFormData] = useState<MenuFormData>({
         menu_name: "",
-        category: "food",
+        category_id: 1,
         description: "",
         price: 0,
         is_available: true,
@@ -30,13 +31,18 @@ export default function ManageMenu() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [menuToDelete, setMenuToDelete] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     // Variation Groups State
     const [variationGroups, setVariationGroups] = useState<VariationGroup[]>([]);
     const [selectedVariationIds, setSelectedVariationIds] = useState<number[]>([]);
 
+    // Image Preview State
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
     useEffect(() => {
         fetchMenus();
+        fetchCategories();
     }, []);
 
     const fetchMenus = async () => {
@@ -57,6 +63,17 @@ export default function ManageMenu() {
         }
     };
 
+    const fetchCategories = async () => {
+        try {
+            const response = await categoryApi.getAllCategories();
+            if (response.success && response.data) {
+                setCategories(response.data);
+            }
+        } catch (err) {
+            console.error("Error fetching categories:", err);
+        }
+    };
+
     const fetchVariationGroups = async () => {
         try {
             const response = await variationApi.getAllGroups();
@@ -71,6 +88,7 @@ export default function ManageMenu() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            setSubmitting(true);
             if (editingMenu) {
                 const response = await menuApi.updateMenu(editingMenu.id.toString(), formData);
                 if (response.success) {
@@ -95,6 +113,8 @@ export default function ManageMenu() {
         } catch (err) {
             console.error("Submit error:", err);
             setError("Gagal menyimpan menu");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -132,7 +152,7 @@ export default function ManageMenu() {
             setEditingMenu(menu);
             setFormData({
                 menu_name: menu.menu_name,
-                category: menu.category,
+                category_id: menu.category_id,
                 description: menu.description,
                 price: menu.price,
                 is_available: menu.is_available,
@@ -152,7 +172,7 @@ export default function ManageMenu() {
             setEditingMenu(null);
             setFormData({
                 menu_name: "",
-                category: "food",
+                category_id: categories.length > 0 ? categories[0].id : 1,
                 description: "",
                 price: 0,
                 is_available: true,
@@ -167,13 +187,49 @@ export default function ManageMenu() {
         setEditingMenu(null);
         setFormData({
             menu_name: "",
-            category: "food",
+            category_id: categories.length > 0 ? categories[0].id : 1,
             description: "",
             price: 0,
             is_available: true,
         });
         setSelectedVariationIds([]);
+        setImagePreview(null);
         setError(null);
+    };
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith("image/")) {
+            setError("File harus berupa gambar (JPG, PNG, WEBP)");
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setError("Ukuran file maksimal 5MB");
+            return;
+        }
+
+        // Clear any previous errors
+        setError(null);
+
+        // Update form data with the file
+        setFormData({ ...formData, image: file });
+
+        // Generate preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveImage = () => {
+        setFormData({ ...formData, image: undefined });
+        setImagePreview(null);
     };
 
     const formatPrice = (price: number) => {
@@ -184,14 +240,7 @@ export default function ManageMenu() {
         }).format(price);
     };
 
-    const getCategoryBadge = (category: string) => {
-        const badges = {
-            food: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-            drink: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-            dessert: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-        };
-        return badges[category as keyof typeof badges] || badges.food;
-    };
+
 
     const columns: ColumnConfig[] = useMemo(() => [
         {
@@ -225,9 +274,9 @@ export default function ManageMenu() {
             key: "category",
             label: "Kategori",
             sortable: true,
-            render: (val) => (
-                <span className={`px-2.5 py-1 text-xs font-medium rounded-full capitalize ${getCategoryBadge(val as string)}`}>
-                    {val as string}
+            render: (_val, row) => (
+                <span className={`px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400`}>
+                    {row.category?.name || "Uncategorized"}
                 </span>
             )
         },
@@ -286,7 +335,7 @@ export default function ManageMenu() {
                     title="Kelola Menu | Reservasi Ruang Dugamasa"
                     description="Kelola menu makanan dan minuman restoran"
                 />
-                <PageBreadcrumb pageTitle="Kelola Menu" />
+                <PageBreadcrumb pageTitle="Kelola Menu" showHome={false} />
                 <DataTableSkeleton />
             </div>
         );
@@ -298,7 +347,7 @@ export default function ManageMenu() {
                 title="Kelola Menu | Reservasi Ruang Dugamasa"
                 description="Kelola menu makanan dan minuman restoran"
             />
-            <PageBreadcrumb pageTitle="Kelola Menu" />
+            <PageBreadcrumb pageTitle="Kelola Menu" showHome={false} />
 
             <div className="space-y-5 sm:space-y-6">
                 {/* Error Message */}
@@ -333,13 +382,14 @@ export default function ManageMenu() {
             </div>
 
             {/* Add/Edit Modal */}
-            <Modal isOpen={showModal} onClose={closeModal} className="max-w-lg p-5 lg:p-10">
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
+            <Modal isOpen={showModal} onClose={closeModal} className="max-w-2xl p-5 lg:p-8">
+                <form onSubmit={handleSubmit} className="flex flex-col max-h-[85vh]">
+                    <h4 className="text-lg font-medium text-gray-800 dark:text-white/90 mb-4">
                         {editingMenu ? "Edit Menu" : "Tambah Menu Baru"}
                     </h4>
 
-                    <div className="space-y-4">
+                    {/* Scrollable Content */}
+                    <div className="space-y-4 overflow-y-auto pr-2 flex-1">
                         <div>
                             <Label>
                                 Nama Menu <span className="text-red-500">*</span>
@@ -352,18 +402,62 @@ export default function ManageMenu() {
                             />
                         </div>
 
+                        {/* Image Upload Section */}
+                        <div>
+                            <Label>
+                                Foto Menu (Opsional)
+                            </Label>
+                            <div className="space-y-3">
+                                {/* Image Preview */}
+                                {(imagePreview || editingMenu?.image_url) && (
+                                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                                        <img
+                                            src={imagePreview || editingMenu?.image_url}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleRemoveImage}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                                            title="Hapus gambar"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* File Input */}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-900/20 dark:file:text-brand-400 dark:hover:file:bg-brand-900/30"
+                                />
+
+                                {/* Help Text */}
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Format: JPG, PNG, WEBP. Maksimal 5MB
+                                </p>
+                            </div>
+                        </div>
+
                         <div>
                             <Label>
                                 Kategori <span className="text-red-500">*</span>
                             </Label>
                             <select
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value as "food" | "drink" | "dessert" })}
+                                value={formData.category_id}
+                                onChange={(e) => setFormData({ ...formData, category_id: Number(e.target.value) })}
                                 className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
                             >
-                                <option value="food">Food</option>
-                                <option value="drink">Drink</option>
-                                <option value="dessert">Dessert</option>
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -460,17 +554,19 @@ export default function ManageMenu() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-end w-full gap-3 mt-6">
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-end w-full gap-3 mt-5 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <Button
                             type="button"
                             size="sm"
                             onClick={closeModal}
                             variant="outline"
+                            disabled={submitting}
                         >
                             Batal
                         </Button>
-                        <Button type="submit" size="sm" variant="primary">
-                            {editingMenu ? "Simpan Perubahan" : "Tambah Menu"}
+                        <Button type="submit" size="sm" variant="primary" disabled={submitting}>
+                            {submitting ? "Menyimpan..." : (editingMenu ? "Simpan Perubahan" : "Tambah Menu")}
                         </Button>
                     </div>
                 </form>

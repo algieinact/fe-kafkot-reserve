@@ -136,12 +136,18 @@ export const formatPaymentStatus = (status: string): string => {
  * @returns Formatted category (e.g., "Makanan")
  */
 export const formatMenuCategory = (category: string): string => {
-  const categoryMap: Record<string, string> = {
-    food: "Makanan",
-    drink: "Minuman",
-    dessert: "Dessert",
-  };
-  return categoryMap[category] || category;
+  switch (category.toLowerCase()) {
+    case "food":
+      return "Makanan";
+    case "drink":
+      return "Minuman";
+    case "dessert":
+      return "Dessert";
+    case "snack":
+      return "Camilan";
+    default:
+      return category;
+  }
 };
 
 /**

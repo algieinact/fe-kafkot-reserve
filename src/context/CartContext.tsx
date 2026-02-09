@@ -83,7 +83,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           menu,
           quantity,
           variations,
-          total_price: itemPrice
+          total_price: itemPrice * quantity
         };
         return [...prevItems, newItem];
       }
@@ -101,9 +101,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === cartItemId ? { ...item, quantity } : item
-      )
+      prevItems.map((item) => {
+        if (item.id === cartItemId) {
+          const itemPrice = calculateItemPrice(item.menu, item.variations);
+          return { ...item, quantity, total_price: itemPrice * quantity };
+        }
+        return item;
+      })
     );
   };
 

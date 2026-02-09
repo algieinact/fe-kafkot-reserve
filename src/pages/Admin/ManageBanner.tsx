@@ -268,7 +268,7 @@ export default function ManageBanner() {
           title="Kelola Banner | Reservasi Ruang Dugamasa"
           description="Kelola banner carousel halaman menu"
         />
-        <PageBreadcrumb pageTitle="Kelola Banner" />
+        <PageBreadcrumb pageTitle="Kelola Banner" showHome={false} />
         <DataTableSkeleton />
       </div>
     );
@@ -280,7 +280,7 @@ export default function ManageBanner() {
         title="Kelola Banner | Reservasi Ruang Dugamasa"
         description="Kelola banner carousel halaman menu"
       />
-      <PageBreadcrumb pageTitle="Kelola Banner" />
+      <PageBreadcrumb pageTitle="Kelola Banner" showHome={false} />
 
       <div className="space-y-5 sm:space-y-6">
         {/* Error Message */}

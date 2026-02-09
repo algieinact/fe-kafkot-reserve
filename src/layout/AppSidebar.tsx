@@ -49,6 +49,11 @@ const adminMenuItems: NavItem[] = [
     path: "/dashboard/menus",
   },
   {
+    name: "Kelola Kategori",
+    icon: <ClipboardIcon />,
+    path: "/dashboard/categories",
+  },
+  {
     name: "Kelola Meja",
     icon: <TableIcon />,
     path: "/dashboard/tables",

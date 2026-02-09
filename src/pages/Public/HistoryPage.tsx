@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { reservationStorage, ReservationHistory } from "../../services/localStorage";
 import { reservationApi } from "../../services/api";
 import { formatCurrency } from "../../utils/formatters";
 import { Card } from "../../components/ui/card";
 
 const HistoryPage: React.FC = () => {
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState<ReservationHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState<string | null>(null);
@@ -187,121 +189,130 @@ const HistoryPage: React.FC = () => {
         {/* Reservations List */}
         <div className="space-y-4">
           {reservations.map((reservation) => (
-            <Card key={reservation.bookingCode}>
-              <div className="p-6">
-                {/* Header */}
-                <div className="mb-4 flex items-start justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
-                      {reservation.bookingCode}
-                    </h3>
-                    <p className="mt-1 text-xs text-gray-600 sm:text-sm">
-                      {reservation.customerName}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(reservation.status)}
-                    <button
-                      onClick={() => refreshStatus(reservation.bookingCode)}
-                      disabled={refreshing === reservation.bookingCode}
-                      className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
-                      title="Refresh Status"
-                    >
-                      <svg
-                        className={`h-5 w-5 ${refreshing === reservation.bookingCode ? "animate-spin" : ""}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+            <div
+              key={reservation.bookingCode}
+              onClick={() => navigate(`/order-status/${reservation.bookingCode}`)}
+              className="cursor-pointer transition-shadow hover:shadow-lg rounded-lg"
+            >
+              <Card>
+                <div className="p-2 sm:p-6">
+                  {/* Header */}
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
+                        {reservation.bookingCode}
+                      </h3>
+                      <p className="mt-1 text-xs text-gray-600 sm:text-sm">
+                        {reservation.customerName}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(reservation.status)}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          refreshStatus(reservation.bookingCode);
+                        }}
+                        disabled={refreshing === reservation.bookingCode}
+                        className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
+                        title="Refresh Status"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Details Grid */}
-                <div className="mb-4 grid gap-4 sm:grid-cols-2">
-                  {/* Date & Time */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Tanggal & Waktu</p>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {formatDate(reservation.reservationDate)}
-                    </p>
-                    <p className="text-sm text-gray-900">
-                      {formatTime(reservation.reservationTime)} - {formatTime(calculateEndTime(reservation.reservationTime, reservation.durationHours))}
-                      <span className="ml-2 text-gray-500">({reservation.durationHours} jam)</span>
-                    </p>
+                        <svg
+                          className={`h-5 w-5 ${refreshing === reservation.bookingCode ? "animate-spin" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Table */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Meja</p>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {reservation.tableNumber || "-"}
-                      {reservation.tableType && (
-                        <span className="ml-2 text-gray-500">({reservation.tableType})</span>
-                      )}
-                    </p>
+                  {/* Details Grid */}
+                  <div className="mb-4 grid gap-4 sm:grid-cols-2">
+                    {/* Date & Time */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Tanggal & Waktu</p>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {formatDate(reservation.reservationDate)}
+                      </p>
+                      <p className="text-sm text-gray-900">
+                        {formatTime(reservation.reservationTime)} - {formatTime(calculateEndTime(reservation.reservationTime, reservation.durationHours))}
+                        <span className="ml-2 text-gray-500">({reservation.durationHours} jam)</span>
+                      </p>
+                    </div>
 
-                  </div>
+                    {/* Table */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Meja</p>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {reservation.tableNumber || "-"}
+                        {reservation.tableType && (
+                          <span className="ml-2 text-gray-500">({reservation.tableType})</span>
+                        )}
+                      </p>
 
-                  {/* Contact */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Kontak</p>
-                    <p className="mt-1 text-sm text-gray-900">{reservation.customerEmail}</p>
-                    <p className="text-sm text-gray-900">{reservation.customerPhone}</p>
-                  </div>
+                    </div>
 
-                  {/* Created */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Dibuat</p>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {new Date(reservation.createdAt).toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                </div>
+                    {/* Contact */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Kontak</p>
+                      <p className="mt-1 text-sm text-gray-900">{reservation.customerEmail}</p>
+                      <p className="text-sm text-gray-900">{reservation.customerPhone}</p>
+                    </div>
 
-                {/* Order Items */}
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="mb-3 text-sm font-medium text-gray-500">Pesanan</p>
-                  <div className="space-y-2">
-                    {reservation.orderItems.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between text-sm">
-                        <div className="flex-1">
-                          <span className="text-gray-900">{item.menuName}</span>
-                          <span className="ml-2 text-gray-500">x{item.quantity}</span>
-                        </div>
-                        <span className="font-medium text-gray-900">
-                          {formatCurrency(item.price * item.quantity)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-gray-200 pt-3">
-                    <span className="text-sm font-semibold text-gray-900 sm:text-base">Total</span>
-                    <span className="text-base font-bold text-brand-500 sm:text-lg">
-                      {formatCurrency(reservation.totalAmount)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Rejection Reason - Show only if status is rejected */}
-                {reservation.status === 'rejected' && reservation.rejection_reason && (
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-                      <p className="text-sm text-red-800">
-                        {reservation.rejection_reason}
+                    {/* Created */}
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Dibuat</p>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {new Date(reservation.createdAt).toLocaleString("id-ID")}
                       </p>
                     </div>
                   </div>
-                )}
-              </div>
-            </Card>
+
+                  {/* Order Items */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <p className="mb-3 text-sm font-medium text-gray-500">Pesanan</p>
+                    <div className="space-y-2">
+                      {reservation.orderItems.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <div className="flex-1">
+                            <span className="text-gray-900">{item.menuName}</span>
+                            <span className="ml-2 text-gray-500">x{item.quantity}</span>
+                          </div>
+                          <span className="font-medium text-gray-900">
+                            {formatCurrency(item.price * item.quantity)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex items-center justify-between border-t border-gray-200 pt-3">
+                      <span className="text-sm font-semibold text-gray-900 sm:text-base">Total</span>
+                      <span className="text-base font-bold text-brand-500 sm:text-lg">
+                        {formatCurrency(reservation.totalAmount)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Rejection Reason - Show only if status is rejected */}
+                  {reservation.status === 'rejected' && reservation.rejection_reason && (
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                        <p className="text-sm text-red-800">
+                          {reservation.rejection_reason}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
           ))}
         </div>
       </div>

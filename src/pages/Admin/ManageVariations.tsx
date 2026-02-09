@@ -245,7 +245,7 @@ export default function ManageVariations() {
                     title="Kelola Variasi | Reservasi Ruang Dugamasa"
                     description="Kelola grup variasi dan opsi untuk menu"
                 />
-                <PageBreadcrumb pageTitle="Kelola Variasi" />
+                <PageBreadcrumb pageTitle="Kelola Variasi" showHome={false} />
                 <CardSkeleton count={3} />
             </div>
         );
@@ -257,7 +257,7 @@ export default function ManageVariations() {
                 title="Kelola Variasi | Reservasi Ruang Dugamasa"
                 description="Kelola grup variasi dan opsi untuk menu"
             />
-            <PageBreadcrumb pageTitle="Kelola Variasi" />
+            <PageBreadcrumb pageTitle="Kelola Variasi" showHome={false} />
 
             <div className="space-y-5 sm:space-y-6">
 

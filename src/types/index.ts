@@ -31,13 +31,23 @@ export type ReservationStatus = "pending_verification" | "confirmed" | "rejected
 
 export type PaymentStatus = "pending" | "waiting_verification" | "verified" | "rejected";
 
-export type MenuCategory = "food" | "drink" | "dessert";
+export type MenuCategory = "food" | "drink" | "dessert" | "snack";
+
+// Category Types
+export interface Category {
+  id: number;
+  name: string;
+  menus_count?: number;
+  created_at: string;
+  updated_at: string;
+}
 
 // Menu Types
 export interface Menu {
   id: number;
   menu_name: string;
-  category: MenuCategory;
+  category_id: number;
+  category?: Category;
   description: string;
   price: number;
   image_url?: string;
@@ -234,7 +244,7 @@ export interface ReservationFormData {
 
 export interface MenuFormData {
   menu_name: string;
-  category: string;
+  category_id: number;
   description: string;
   price: number;
   image?: File;

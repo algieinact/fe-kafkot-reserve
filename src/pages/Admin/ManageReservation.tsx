@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { Eye, CheckCircle, X } from "lucide-react";
 import { reservationApi } from "../../services/api";
 import { Reservation, ReservationStatus } from "../../types";
@@ -11,11 +12,11 @@ import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { DataTableSkeleton } from "../../components/ui/skeleton";
 
 export default function ManageReservation() {
+    const navigate = useNavigate();
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showVerifyModal, setShowVerifyModal] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
@@ -64,7 +65,6 @@ export default function ManageReservation() {
             const response = await reservationApi.verifyPayment(selectedReservation.id.toString(), {});
             if (response.success) {
                 await fetchReservations();
-                setShowDetailModal(false);
                 setShowVerifyModal(false);
                 setSelectedReservation(null);
             }
@@ -89,7 +89,6 @@ export default function ManageReservation() {
             );
             if (response.success) {
                 await fetchReservations();
-                setShowDetailModal(false);
                 setShowRejectModal(false);
                 setRejectionReason("");
                 setSelectedReservation(null);
@@ -100,16 +99,6 @@ export default function ManageReservation() {
         } finally {
             setProcessing(false);
         }
-    };
-
-    const openDetailModal = (reservation: Reservation) => {
-        setSelectedReservation(reservation);
-        setShowDetailModal(true);
-    };
-
-    const closeDetailModal = () => {
-        setShowDetailModal(false);
-        setSelectedReservation(null);
     };
 
     const openRejectModal = () => {
@@ -260,7 +249,7 @@ export default function ManageReservation() {
             render: (_val, row) => (
                 <div className="flex items-center gap-1.5">
                     <button
-                        onClick={() => openDetailModal(row as Reservation)}
+                        onClick={() => navigate(`/dashboard/reservations/${(row as Reservation).id}`)}
                         className="inline-flex items-center justify-center p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                         title="Lihat Detail"
                     >
@@ -306,7 +295,7 @@ export default function ManageReservation() {
                 title="Kelola Reservasi | Reservasi Ruang Dugamasa"
                 description="Kelola reservasi dan verifikasi pembayaran"
             />
-            <PageBreadcrumb pageTitle="Kelola Reservasi" />
+            <PageBreadcrumb pageTitle="Kelola Reservasi" showHome={false} />
 
             <div className="space-y-5 sm:space-y-6">
                 {/* Tab Style Filter - Like ArrivalCheck */}
@@ -355,187 +344,6 @@ export default function ManageReservation() {
                     />
                 )}
             </div>
-
-            {/* Detail Modal */}
-            <Modal isOpen={showDetailModal && !!selectedReservation} onClose={closeDetailModal} className="max-w-3xl p-5 lg:p-10">
-                {selectedReservation && (
-                    <div className="space-y-6">
-                        <h4 className="text-lg font-medium text-gray-800 dark:text-white/90">
-                            Detail Reservasi #{selectedReservation.id}
-                        </h4>
-
-                        <div className="max-h-[60vh] overflow-y-auto">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Customer Info */}
-                                <div>
-                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        Informasi Pelanggan
-                                    </h5>
-                                    <div className="space-y-2">
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Nama:</span>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {selectedReservation.customer_name}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Email:</span>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {selectedReservation.customer_email}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Telepon:</span>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {selectedReservation.customer_phone}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Reservation Info */}
-                                <div>
-                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        Informasi Reservasi
-                                    </h5>
-                                    <div className="space-y-2">
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Tanggal:</span>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {formatDate(selectedReservation.reservation_date)}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Waktu:</span>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                {formatTime(selectedReservation.reservation_time)}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Meja:</span>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                Meja {selectedReservation.table?.table_number || "-"}
-                                            </p>
-                                        </div>
-
-                                        <div>
-                                            <span className="text-sm text-gray-500 dark:text-gray-400">Status:</span>
-                                            <p className="text-sm font-medium">
-                                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getStatusBadge(selectedReservation.status)}`}>
-                                                    {getStatusText(selectedReservation.status)}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Order Items */}
-                            {selectedReservation.items && selectedReservation.items.length > 0 && (
-                                <div className="mt-6">
-                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        Pesanan Menu
-                                    </h5>
-                                    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 dark:bg-gray-800">
-                                                <tr>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Menu</th>
-                                                    <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">Qty</th>
-                                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Harga</th>
-                                                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">Subtotal</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                                                {selectedReservation.items.map((item, index) => (
-                                                    <tr key={index}>
-                                                        <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                                                            {item.menu?.menu_name || "-"}
-                                                        </td>
-                                                        <td className="px-4 py-2 text-sm text-center text-gray-900 dark:text-white">
-                                                            {item.quantity}
-                                                        </td>
-                                                        <td className="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                            {formatPrice(item.price)}
-                                                        </td>
-                                                        <td className="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                            {formatPrice(item.price * item.quantity)}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                                <tr className="bg-gray-50 dark:bg-gray-800">
-                                                    <td colSpan={3} className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white text-right">
-                                                        Total:
-                                                    </td>
-                                                    <td className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white text-right">
-                                                        {formatPrice(selectedReservation.total_amount)}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Payment Proof */}
-                            {selectedReservation.payment_proof_url && (
-                                <div className="mt-6">
-                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        Bukti Pembayaran
-                                    </h5>
-                                    <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-                                        <img
-                                            src={selectedReservation.payment_proof_url}
-                                            alt="Bukti Pembayaran"
-                                            className="max-w-full h-auto rounded-lg"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Rejection Reason */}
-                            {selectedReservation.status === "rejected" && selectedReservation.rejection_reason && (
-                                <div className="mt-6">
-                                    <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        Alasan Penolakan
-                                    </h5>
-                                    <div className="border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                                        <p className="text-sm text-red-800 dark:text-red-400">
-                                            {selectedReservation.rejection_reason}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center justify-end w-full gap-3 mt-6">
-                            <Button
-                                onClick={closeDetailModal}
-                                size="sm"
-                                variant="outline"
-                            >
-                                Tutup
-                            </Button>
-                            {selectedReservation.status === "pending_verification" && (
-                                <>
-                                    <button
-                                        onClick={openRejectModal}
-                                        className="px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
-                                    >
-                                        Tolak
-                                    </button>
-                                    <button
-                                        onClick={() => confirmVerifyPayment(selectedReservation.id)}
-                                        className="px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
-                                    >
-                                        Terima
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </Modal>
 
             {/* Reject Modal */}
             <Modal isOpen={showRejectModal} onClose={closeRejectModal} className="max-w-lg p-5 lg:p-10">

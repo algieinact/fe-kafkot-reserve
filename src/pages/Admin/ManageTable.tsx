@@ -304,7 +304,7 @@ export default function ManageTable() {
         return (
             <div className="space-y-5 sm:space-y-6">
                 <PageMeta title="Kelola Meja" description="Manajemen layout dan data meja restoran" />
-                <PageBreadcrumb pageTitle="Kelola Meja" />
+                <PageBreadcrumb pageTitle="Kelola Meja" showHome={false} />
                 <StatsCardSkeleton count={3} />
                 <DataTableSkeleton />
             </div>
@@ -319,7 +319,7 @@ export default function ManageTable() {
     return (
         <>
             <PageMeta title="Kelola Meja" description="Manajemen layout dan data meja restoran" />
-            <PageBreadcrumb pageTitle="Kelola Meja" />
+            <PageBreadcrumb pageTitle="Kelola Meja" showHome={false} />
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

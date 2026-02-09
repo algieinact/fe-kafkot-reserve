@@ -13,11 +13,11 @@ interface StepIndicatorProps {
 const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, steps }) => {
     return (
         <div className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
                 {steps.map((step, index) => (
                     <React.Fragment key={step.number}>
                         {/* Step Circle */}
-                        <div className="flex flex-col items-center flex-1">
+                        <div className="flex flex-col items-center" style={{ width: `${100 / steps.length}%` }}>
                             <div
                                 className={`
                   flex h-10 w-10 items-center justify-center rounded-full border-2 font-bold text-sm
@@ -42,7 +42,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, steps }) => 
                             </div>
                             <div
                                 className={`
-                  mt-2 text-xs font-medium text-center
+                  mt-2 text-[10px] sm:text-xs font-medium text-center line-clamp-2 px-1 min-h-[2rem]
                   ${currentStep >= step.number
                                         ? 'text-brand-600 dark:text-brand-400'
                                         : 'text-gray-500 dark:text-gray-400'

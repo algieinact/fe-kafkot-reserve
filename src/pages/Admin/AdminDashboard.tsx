@@ -171,7 +171,7 @@ export default function AdminDashboard() {
                     </h2>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <a
-                            href="/admin/reservations"
+                            href="/dashboard/reservations"
                             className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                         >
                             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 dark:bg-brand-900/20">

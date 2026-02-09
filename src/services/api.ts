@@ -1,6 +1,7 @@
 import {
   Menu,
   MenuFormData,
+  Category,
   Banner,
   VariationGroup,
   VariationOption,
@@ -135,7 +136,7 @@ export const menuApi = {
   createMenu: async (data: MenuFormData): Promise<ApiResponse<Menu>> => {
     const formData = new FormData();
     formData.append("menu_name", data.menu_name);
-    formData.append("category", data.category);
+    formData.append("category_id", data.category_id.toString());
     formData.append("description", data.description);
     formData.append("price", data.price.toString());
     formData.append("is_available", data.is_available.toString());
@@ -157,7 +158,7 @@ export const menuApi = {
     const formData = new FormData();
     formData.append("_method", "PUT"); // Laravel needs this for FormData PUT requests
     formData.append("menu_name", data.menu_name);
-    formData.append("category", data.category);
+    formData.append("category_id", data.category_id.toString());
     formData.append("description", data.description);
     formData.append("price", data.price.toString());
     formData.append("is_available", data.is_available ? "1" : "0"); // Convert to 1/0 for Laravel
@@ -247,6 +248,58 @@ export const bannerApi = {
     return handleResponse<void>(response);
   },
 };
+
+// ============================================
+// CATEGORY API
+// ============================================
+
+export const categoryApi = {
+  // Public: Get all categories
+  getCategories: async (): Promise<ApiResponse<Category[]>> => {
+    const response = await fetch(`${API_BASE_URL}/categories`, {
+      headers: createHeaders(),
+    });
+    return handleResponse<Category[]>(response);
+  },
+
+  // Admin: Get all categories with menu count
+  getAllCategories: async (): Promise<ApiResponse<Category[]>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/categories`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<Category[]>(response);
+  },
+
+  // Admin: Create category
+  createCategory: async (name: string): Promise<ApiResponse<Category>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/categories`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify({ name }),
+    });
+    return handleResponse<Category>(response);
+  },
+
+  // Admin: Update category
+  updateCategory: async (id: number, name: string): Promise<ApiResponse<Category>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/categories/${id}`, {
+      method: "PUT",
+      headers: createHeaders(true),
+      body: JSON.stringify({ name }),
+    });
+    return handleResponse<Category>(response);
+  },
+
+  // Admin: Delete category
+  deleteCategory: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/categories/${id}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
+    });
+    return handleResponse<void>(response);
+  },
+};
+
 
 // ============================================
 // VARIATION API
@@ -453,12 +506,14 @@ export const tableApi = {
 
 export const reservationApi = {
   getReservations: async (params?: {
+    id?: number;
     status?: ReservationStatus;
     date?: string;
     page?: number;
     per_page?: number;
   }): Promise<ApiResponse<PaginatedResponse<Reservation>>> => {
     const queryParams = new URLSearchParams();
+    if (params?.id) queryParams.append("id", params.id.toString());
     if (params?.status) queryParams.append("status", params.status);
     if (params?.date) queryParams.append("date", params.date);
     if (params?.page) queryParams.append("page", params.page.toString());

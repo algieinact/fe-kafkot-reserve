@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
-import { Menu, MenuCategory, Banner, MenuWithVariations, SelectedVariation } from "../../types";
+import { Menu, Category, Banner, MenuWithVariations, SelectedVariation } from "../../types";
 import { useCart } from "../../context/CartContext";
-import { formatCurrency, formatMenuCategory } from "../../utils/formatters";
+import { formatCurrency } from "../../utils/formatters";
 
-import { menuApi, bannerApi } from "../../services/api";
+import { menuApi, bannerApi, categoryApi } from "../../services/api";
 
 const MenuPage: React.FC = () => {
   const { addItem, cartItems, totalItems, totalPrice, updateQuantity, removeItem } = useCart();
-  const [selectedCategory, setSelectedCategory] = useState<MenuCategory | "all">("all");
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showCartModal, setShowCartModal] = useState(false);
@@ -22,6 +22,7 @@ const MenuPage: React.FC = () => {
 
   // API state
   const [menus, setMenus] = useState<Menu[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +66,22 @@ const MenuPage: React.FC = () => {
     };
 
     fetchMenus();
+  }, []);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await categoryApi.getCategories();
+        if (response.success && response.data) {
+          setCategories(response.data);
+        }
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // Fetch banners from API
@@ -114,7 +131,7 @@ const MenuPage: React.FC = () => {
     console.log("✅ Starting with", filtered.length, "menus");
 
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((menu) => menu.category === selectedCategory);
+      filtered = filtered.filter((menu) => menu.category_id === selectedCategory);
       console.log("After category filter:", filtered.length);
     }
 
@@ -292,18 +309,27 @@ const MenuPage: React.FC = () => {
     }
   };
 
-  // Get category color based on menu category
-  const getCategoryColor = (category: MenuCategory) => {
-    switch (category) {
-      case "drink":
-        return "bg-blue-700"; // Blue for drinks
-      case "food":
-        return "bg-brand-500"; // Orange for food
-      case "dessert":
-        return "bg-red-700"; // Pink for dessert
-      default:
-        return "bg-brand-500"; // Default brand color
-    }
+
+  // Generate consistent color for category badge based on category ID
+  const getCategoryBadgeColor = (categoryId: number) => {
+    const colors = [
+      'bg-[#1F5963]',     // Brand color (Teal)
+      'bg-blue-700',      // #1d4ed8 - Biru profesional
+      'bg-indigo-700',    // #4338ca - Indigo
+      'bg-violet-700',    // #6d28d9 - Ungu
+      'bg-purple-700',    // #7e22ce - Purple
+      'bg-rose-700',      // #be123c - Rose
+      'bg-orange-700',    // #c2410c - Orange hangat
+      'bg-amber-700',     // #b45309 - Amber
+      'bg-emerald-700',   // #047857 - Emerald (keluarga hijau)
+      'bg-teal-700',      // #0f766e - Teal (keluarga brand)
+      'bg-cyan-700',      // #0e7490 - Cyan
+      'bg-slate-700',     // #334155 - Slate abu
+      'bg-gray-700',      // #374151 - Gray netral
+      'bg-pink-700',      // #be185d - Pink
+      'bg-fuchsia-700',   // #a21caf - Fuchsia
+    ];
+    return colors[categoryId % colors.length];
   };
 
   const nextSlide = () => {
@@ -401,39 +427,24 @@ const MenuPage: React.FC = () => {
             <button
               onClick={() => setSelectedCategory("all")}
               className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "all"
-                ? "bg-brand-500 text-white"
-                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+                  ? "bg-brand-500 text-white"
+                  : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
             >
               Semua
             </button>
-            <button
-              onClick={() => setSelectedCategory("drink")}
-              className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "drink"
-                ? "bg-brand-500 text-white"
-                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
-                }`}
-            >
-              Minuman
-            </button>
-            <button
-              onClick={() => setSelectedCategory("food")}
-              className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "food"
-                ? "bg-brand-500 text-white"
-                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
-                }`}
-            >
-              Makanan
-            </button>
-            <button
-              onClick={() => setSelectedCategory("dessert")}
-              className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "dessert"
-                ? "bg-brand-500 text-white"
-                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
-                }`}
-            >
-              Dessert
-            </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === category.id
+                  ? "bg-brand-500 text-white"
+                  : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+                  }`}
+              >
+                {category.name}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -493,11 +504,13 @@ const MenuPage: React.FC = () => {
                     />
 
                     {/* Floating Category Badge */}
-                    <div className="absolute top-2 right-2">
-                      <span className={`inline-flex rounded-full ${getCategoryColor(menu.category)} px-2 py-0.5 text-[0.6rem] font-medium text-white shadow-lg`}>
-                        {formatMenuCategory(menu.category)}
-                      </span>
-                    </div>
+                    {menu.category && (
+                      <div className="absolute top-2 right-2">
+                        <span className={`inline-flex rounded-full ${getCategoryBadgeColor(menu.category.id)} px-2 py-0.5 text-[0.6rem] font-medium text-white shadow-lg`}>
+                          {menu.category.name}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Hover Overlay with Add Button */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">

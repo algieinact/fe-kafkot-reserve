@@ -18,10 +18,12 @@ import HistoryPage from "./pages/Public/HistoryPage";
 // Dashboard Pages
 import LoginPage from "./pages/Admin/LoginPage";
 import ManageMenu from "./pages/Admin/ManageMenu";
+import ManageCategory from "./pages/Admin/ManageCategory";
 import ManageTable from "./pages/Admin/ManageTable";
 import ManageReservation from "./pages/Admin/ManageReservation";
 import ManageBanner from "./pages/Admin/ManageBanner";
 import ManageVariations from "./pages/Admin/ManageVariations";
+import AdminReservationDetail from "./pages/Admin/AdminReservationDetail";
 
 export default function App() {
   return (
@@ -78,6 +80,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/dashboard/categories"
+                element={
+                  <RoleBasedRoute allowedRoles={["admin", "super_admin"]}>
+                    <ManageCategory />
+                  </RoleBasedRoute>
+                }
+              />
+              <Route
                 path="/dashboard/variations"
                 element={
                   <RoleBasedRoute allowedRoles={["admin", "super_admin"]}>
@@ -88,6 +98,7 @@ export default function App() {
 
               {/* Accessible by all authenticated users (admin, super_admin, staff) */}
               <Route path="/dashboard/reservations" element={<ManageReservation />} />
+              <Route path="/dashboard/reservations/:id" element={<AdminReservationDetail />} />
             </Route>
 
             {/* Fallback Route */}

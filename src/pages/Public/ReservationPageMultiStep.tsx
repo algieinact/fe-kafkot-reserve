@@ -680,11 +680,11 @@ const ReservationPageMultiStep: React.FC = () => {
                                                 {paymentProofPreview && (
                                                     <div className="mt-4">
                                                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
-                                                        <div className="relative inline-block">
+                                                        <div className="relative w-full">
                                                             <img
                                                                 src={paymentProofPreview}
                                                                 alt="Payment proof preview"
-                                                                className="max-w-sm rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                                                                className="w-full max-w-sm rounded-lg border-2 border-gray-200 dark:border-gray-700"
                                                             />
                                                             <button
                                                                 type="button"
