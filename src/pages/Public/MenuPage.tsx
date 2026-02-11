@@ -172,6 +172,19 @@ const MenuPage: React.FC = () => {
     });
   };
 
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    if (showCartModal || showVariationModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showCartModal, showVariationModal]);
+
   // Auto-select required single-choice variations when modal opens
   useEffect(() => {
     if (showVariationModal && selectedMenuDetail?.variation_groups) {
@@ -313,21 +326,21 @@ const MenuPage: React.FC = () => {
   // Generate consistent color for category badge based on category ID
   const getCategoryBadgeColor = (categoryId: number) => {
     const colors = [
-      'bg-[#1F5963]',     // Brand color (Teal)
-      'bg-blue-700',      // #1d4ed8 - Biru profesional
-      'bg-indigo-700',    // #4338ca - Indigo
-      'bg-violet-700',    // #6d28d9 - Ungu
-      'bg-purple-700',    // #7e22ce - Purple
-      'bg-rose-700',      // #be123c - Rose
-      'bg-orange-700',    // #c2410c - Orange hangat
-      'bg-amber-700',     // #b45309 - Amber
-      'bg-emerald-700',   // #047857 - Emerald (keluarga hijau)
-      'bg-teal-700',      // #0f766e - Teal (keluarga brand)
-      'bg-cyan-700',      // #0e7490 - Cyan
-      'bg-slate-700',     // #334155 - Slate abu
-      'bg-gray-700',      // #374151 - Gray netral
-      'bg-pink-700',      // #be185d - Pink
-      'bg-fuchsia-700',   // #a21caf - Fuchsia
+      'bg-[#1F5963]',     // brand
+      'bg-red-600',       // #dc2626
+      'bg-blue-600',      // #2563eb
+      'bg-amber-500',     // #f59e0b
+      'bg-purple-600',    // #9333ea
+      'bg-orange-600',    // #ea580c
+      'bg-pink-600',      // #db2777
+      'bg-lime-600',      // #65a30d
+      'bg-sky-500',       // #0ea5e9
+      'bg-rose-700',      // #be123c
+      'bg-indigo-600',    // #4f46e5
+      'bg-emerald-500',   // #10b981
+      'bg-fuchsia-600',   // #c026d3
+      'bg-slate-700',     // #334155
+      'bg-yellow-600',    // #ca8a04
     ];
     return colors[categoryId % colors.length];
   };
@@ -427,8 +440,8 @@ const MenuPage: React.FC = () => {
             <button
               onClick={() => setSelectedCategory("all")}
               className={`whitespace-nowrap rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-2.5 sm:text-sm ${selectedCategory === "all"
-                  ? "bg-brand-500 text-white"
-                  : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+                ? "bg-brand-500 text-white"
+                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
             >
               Semua

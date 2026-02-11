@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 import { authApi } from "../../services/api";
@@ -14,7 +13,6 @@ interface SignInFormProps {
 
 export default function SignInForm({ isAdminMode = false }: SignInFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -165,22 +163,6 @@ export default function SignInForm({ isAdminMode = false }: SignInFormProps) {
                       )}
                     </span>
                   </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Checkbox checked={isChecked} onChange={setIsChecked} />
-                    <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                      Keep me logged in
-                    </span>
-                  </div>
-                  {!isAdminMode && (
-                    <Link
-                      to="/reset-password"
-                      className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
-                    >
-                      Forgot password?
-                    </Link>
-                  )}
                 </div>
                 <div>
                   <Button className="w-full" size="sm" disabled={loading} type="submit">

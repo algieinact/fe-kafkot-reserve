@@ -27,8 +27,21 @@ const PublicLayout: React.FC = () => {
             <nav className="hidden md:flex items-center gap-8">
               <Link
                 to="/"
-                className="text-xs font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400 sm:text-sm"
+                className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400 sm:text-sm"
               >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
                 Beranda
               </Link>
               <Link
@@ -86,8 +99,21 @@ const PublicLayout: React.FC = () => {
                 <Link
                   to="/"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg dark:text-gray-300 dark:hover:text-brand-400 dark:hover:bg-white/5"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg dark:text-gray-300 dark:hover:text-brand-400 dark:hover:bg-white/5"
                 >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
                   Beranda
                 </Link>
                 <Link
