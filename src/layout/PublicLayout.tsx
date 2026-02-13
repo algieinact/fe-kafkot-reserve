@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, Link } from "react-router";
+import { House } from "lucide-react";
+import { History } from "lucide-react";
 
 const PublicLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -28,39 +30,14 @@ const PublicLayout: React.FC = () => {
               <Link
                 to="/"
                 className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400 sm:text-sm"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                  />
-                </svg>
+              ><House className="w-5 h-5" />
                 Beranda
               </Link>
               <Link
                 to="/history"
                 className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-400 sm:text-sm"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <History className="w-5 h-5" />
                 Riwayat
               </Link>
               {/* <Link
@@ -101,19 +78,7 @@ const PublicLayout: React.FC = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg dark:text-gray-300 dark:hover:text-brand-400 dark:hover:bg-white/5"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
+                  <House className="w-5 h-5" />
                   Beranda
                 </Link>
                 <Link
@@ -121,19 +86,7 @@ const PublicLayout: React.FC = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-brand-500 hover:bg-gray-50 rounded-lg dark:text-gray-300 dark:hover:text-brand-400 dark:hover:bg-white/5"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <History className="w-5 h-5" />
                   Riwayat
                 </Link>
               </nav>
