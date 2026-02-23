@@ -303,6 +303,14 @@ const ReservationPageMultiStep: React.FC = () => {
             cartItems.forEach((item, index) => {
                 formDataToSend.append(`order_items[${index}][menu_id]`, item.menu.id.toString());
                 formDataToSend.append(`order_items[${index}][quantity]`, item.quantity.toString());
+                // Kirim variasi ke backend
+                if (item.variations && item.variations.length > 0) {
+                    item.variations.forEach((v, vi) => {
+                        formDataToSend.append(`order_items[${index}][variations][${vi}][group_name]`, v.group_name);
+                        formDataToSend.append(`order_items[${index}][variations][${vi}][option_name]`, v.option_name);
+                        formDataToSend.append(`order_items[${index}][variations][${vi}][price]`, v.price.toString());
+                    });
+                }
             });
 
             const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
@@ -346,13 +354,18 @@ const ReservationPageMultiStep: React.FC = () => {
                     duration_hours: duration,
                     booking_code: data.data.booking_code,
                     id: data.data.id,
-                    order_items: cartItems.map(item => ({
-                        menu_id: item.menu.id,
-                        quantity: item.quantity,
-                        menu: item.menu,
-                        price: item.menu.price,
-                        subtotal: item.menu.price * item.quantity
-                    }))
+                    order_items: cartItems.map(item => {
+                        const variationTotal = (item.variations || []).reduce((s, v) => s + v.price, 0);
+                        const pricePerItem = item.menu.price + variationTotal;
+                        return {
+                            menu_id: item.menu.id,
+                            quantity: item.quantity,
+                            menu: item.menu,
+                            price: pricePerItem,
+                            variations: item.variations || [],
+                            subtotal: pricePerItem * item.quantity
+                        };
+                    })
                 }));
 
                 // Clear cart after successful reservation
@@ -768,17 +781,30 @@ const ReservationPageMultiStep: React.FC = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        {cartItems.map((item) => (
-                                            <div key={item.menu.id} className="flex items-start justify-between text-sm">
-                                                <div className="flex-1">
-                                                    <div className="font-medium text-gray-900 dark:text-white">{item.menu.menu_name}</div>
-                                                    <div className="text-gray-600 dark:text-gray-400">x{item.quantity}</div>
+                                        {cartItems.map((item) => {
+                                            const variationTotal = (item.variations || []).reduce((s, v) => s + v.price, 0);
+                                            const pricePerItem = item.menu.price + variationTotal;
+                                            return (
+                                                <div key={`${item.menu.id}-${JSON.stringify(item.variations)}`} className="flex items-start justify-between text-sm">
+                                                    <div className="flex-1 mr-2">
+                                                        <div className="font-medium text-gray-900 dark:text-white">{item.menu.menu_name} x{item.quantity}</div>
+                                                        {(item.variations || []).length > 0 && (
+                                                            <ul className="mt-0.5 space-y-0.5">
+                                                                {(item.variations || []).map((v, vi) => (
+                                                                    <li key={vi} className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                                                                        + {v.group_name}: {v.option_name}
+                                                                        {v.price > 0 && ` (+${v.price.toLocaleString('id-ID')})`}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                    </div>
+                                                    <div className="font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                                        {formatCurrency(pricePerItem * item.quantity)}
+                                                    </div>
                                                 </div>
-                                                <div className="font-medium text-gray-900 dark:text-white">
-                                                    {formatCurrency(item.menu.price * item.quantity)}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                         <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
                                             <div className="flex items-center justify-between">
                                                 <div className="font-semibold text-gray-900 dark:text-white">Total</div>

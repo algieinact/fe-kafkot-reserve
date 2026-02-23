@@ -8,6 +8,7 @@ interface ReservationDetailViewProps {
     reservation: Reservation;
     showQRCode?: boolean;
     showActions?: boolean;
+    showPaymentProof?: boolean;
     showBackButton?: boolean;
     onApprove?: () => void;
     onReject?: () => void;
@@ -19,6 +20,7 @@ export const ReservationDetailView: React.FC<ReservationDetailViewProps> = ({
     reservation,
     showQRCode = false,
     showActions = false,
+    showPaymentProof = false,
     showBackButton = true,
     onApprove,
     onReject,
@@ -83,13 +85,13 @@ export const ReservationDetailView: React.FC<ReservationDetailViewProps> = ({
                     </p>
                 </div>
                 <div className="flex gap-3 flex-wrap">
-                    {reservation.payment_proof_url && (
+                    {showPaymentProof && reservation.payment_proof_url && (
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={() => window.open(reservation.payment_proof_url, '_blank')}
                         >
-                            View Receipt
+                            View Payment Proof
                         </Button>
                     )}
                     {showActions && onReject && (
@@ -154,8 +156,16 @@ export const ReservationDetailView: React.FC<ReservationDetailViewProps> = ({
                                                 item.name ||
                                                 'Menu';
                                             const quantity = Number(item.quantity) || 0;
-                                            const unitPrice = Number(item.menu?.price || item.price || 0);
+                                            const unitPrice = Number(item.price_at_order ?? item.menu?.price ?? item.price ?? 0);
                                             const itemSubtotal = Number(item.subtotal) || (quantity * unitPrice);
+
+                                            // Parse variations — may be array (from API cast) or already decoded
+                                            const variations: { group_name: string; option_name: string; price: number }[] =
+                                                Array.isArray(item.variations)
+                                                    ? item.variations
+                                                    : (typeof item.variations === 'string'
+                                                        ? JSON.parse(item.variations)
+                                                        : []);
 
                                             // Split menu name by spaces for better mobile display
                                             const menuNameParts = menuName.split(' ');
@@ -166,12 +176,24 @@ export const ReservationDetailView: React.FC<ReservationDetailViewProps> = ({
                                                         {index + 1}
                                                     </td>
                                                     <td className="py-2 sm:py-4 text-xs sm:text-sm text-gray-900 dark:text-white">
-                                                        {menuNameParts.map((part: string, i: number) => (
-                                                            <React.Fragment key={i}>
-                                                                {part}
-                                                                {i < menuNameParts.length - 1 && <br />}
-                                                            </React.Fragment>
-                                                        ))}
+                                                        <div className="font-medium">
+                                                            {menuNameParts.map((part: string, i: number) => (
+                                                                <React.Fragment key={i}>
+                                                                    {part}
+                                                                    {i < menuNameParts.length - 1 && <br />}
+                                                                </React.Fragment>
+                                                            ))}
+                                                        </div>
+                                                        {variations.length > 0 && (
+                                                            <ul className="mt-1 space-y-0.5">
+                                                                {variations.map((v, vi) => (
+                                                                    <li key={vi} className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                                                                        + {v.group_name}: {v.option_name}
+                                                                        {v.price > 0 && ` (+${v.price.toLocaleString('id-ID')})`}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
                                                     </td>
                                                     <td className="py-2 sm:py-4 text-center text-xs sm:text-sm text-gray-900 dark:text-white">
                                                         {quantity}

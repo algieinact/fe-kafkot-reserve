@@ -173,6 +173,7 @@ export default function AdminReservationDetail() {
             <ReservationDetailView
                 reservation={reservation}
                 showQRCode={false}
+                showPaymentProof={true}
                 showActions={reservation.status === 'pending_verification'}
                 showBackButton={true}
                 onApprove={() => setShowVerifyModal(true)}

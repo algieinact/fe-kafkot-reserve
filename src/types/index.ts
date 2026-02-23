@@ -141,7 +141,9 @@ export interface OrderItem {
   menu?: Menu;
   quantity: number;
   price: number;
+  price_at_order?: number;
   subtotal: number;
+  variations?: SelectedVariation[];
 }
 
 // Payment Proof Types

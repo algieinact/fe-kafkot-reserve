@@ -361,12 +361,24 @@ const PaymentPage: React.FC = () => {
                 <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
                   <div className="mb-2 text-gray-600 dark:text-gray-400">Pesanan</div>
                   {reservationData.order_items?.map((item: OrderItem, index: number) => (
-                    <div key={item.menu_id || index} className="mb-2 flex justify-between">
-                      <div>
-                        {item.menu?.menu_name || 'Menu'} x{item.quantity}
-                      </div>
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {formatCurrency(item.subtotal || (item.price || 0) * (item.quantity || 0))}
+                    <div key={item.menu_id || index} className="mb-2">
+                      <div className="flex justify-between">
+                        <div className="flex-1 mr-2">
+                          <div>{item.menu?.menu_name || 'Menu'} x{item.quantity}</div>
+                          {Array.isArray(item.variations) && item.variations.length > 0 && (
+                            <ul className="mt-0.5 space-y-0.5">
+                              {item.variations.map((v: any, vi: number) => (
+                                <li key={vi} className="text-[10px] text-gray-500 dark:text-gray-400">
+                                  + {v.group_name}: {v.option_name}
+                                  {v.price > 0 && ` (+${v.price.toLocaleString('id-ID')})`}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        <div className="font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                          {formatCurrency(item.subtotal || (item.price || 0) * (item.quantity || 0))}
+                        </div>
                       </div>
                     </div>
                   ))}
