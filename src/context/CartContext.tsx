@@ -10,6 +10,8 @@ interface CartContextType {
   updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   getItemQuantity: (menuId: number) => number;
+  cartBounce: boolean;
+  triggerBounce: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -18,6 +20,12 @@ const CART_STORAGE_KEY = "kafkot_cart";
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartBounce, setCartBounce] = useState(false);
+
+  const triggerBounce = () => {
+    setCartBounce(true);
+    setTimeout(() => setCartBounce(false), 500);
+  };
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -142,6 +150,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateQuantity,
     clearCart,
     getItemQuantity,
+    cartBounce,
+    triggerBounce,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

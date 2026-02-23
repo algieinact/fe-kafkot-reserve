@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router";
 import { Menu, Category, Banner, MenuWithVariations, SelectedVariation } from "../../types";
 import { useCart } from "../../context/CartContext";
@@ -7,7 +7,7 @@ import { formatCurrency } from "../../utils/formatters";
 import { menuApi, bannerApi, categoryApi } from "../../services/api";
 
 const MenuPage: React.FC = () => {
-  const { addItem, cartItems, totalItems, totalPrice, updateQuantity, removeItem } = useCart();
+  const { addItem, cartItems, totalItems, totalPrice, updateQuantity, removeItem, cartBounce, triggerBounce } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -18,6 +18,9 @@ const MenuPage: React.FC = () => {
   const [selectedMenuDetail, setSelectedMenuDetail] = useState<MenuWithVariations | null>(null);
   const [selectedVariations, setSelectedVariations] = useState<Record<number, number[]>>({});
   const [modalQuantity, setModalQuantity] = useState(1);
+
+  // Animation refs and state
+  const cartIconRef = useRef<HTMLDivElement>(null);
 
 
   // API state
@@ -270,12 +273,95 @@ const MenuPage: React.FC = () => {
       });
     });
 
-    addItem(selectedMenuDetail, modalQuantity, finalVariations);
-
+    // Close modal, then trigger fly animation from modal image
     setShowVariationModal(false);
+
+    const imageUrl = selectedMenuDetail.image_url || "";
+    const menuSnapshot = selectedMenuDetail;
+    const quantity = modalQuantity;
+
+    // Small delay so modal is dismissed before we trigger animation
+    setTimeout(() => {
+      if (imageUrl) {
+        const startX = window.innerWidth / 2 - 40;
+        const startY = window.innerHeight / 2;
+        const fakeRect = new DOMRect(startX, startY, 80, 80);
+        triggerFlyAnimation(imageUrl, fakeRect, () => {
+          addItem(menuSnapshot, quantity, finalVariations);
+          triggerBounce();
+        });
+      } else {
+        addItem(menuSnapshot, quantity, finalVariations);
+        triggerBounce();
+      }
+    }, 100);
   };
 
-  const handleAddToCart = async (menu: Menu) => {
+  // Trigger fly-to-cart animation
+  const triggerFlyAnimation = useCallback((
+    imageUrl: string,
+    sourceRect: DOMRect,
+    onComplete: () => void
+  ) => {
+    // When cart is empty, floating bar not yet rendered — target bottom-center of screen
+    const cartRect = cartIconRef.current
+      ? cartIconRef.current.getBoundingClientRect()
+      : new DOMRect(
+        window.innerWidth / 2 - 16,   // center horizontally
+        window.innerHeight - 60,       // near bottom where cart bar will appear
+        32,
+        32
+      );
+
+    const flyImg = document.createElement("img");
+    flyImg.src = imageUrl;
+    flyImg.className = "fly-to-cart";
+    const imgSize = Math.min(sourceRect.width, sourceRect.height);
+    Object.assign(flyImg.style, {
+      width: `${imgSize}px`,
+      height: `${imgSize}px`,
+      left: `${sourceRect.left}px`,
+      top: `${sourceRect.top}px`,
+      opacity: "1",
+      transform: "scale(1)",
+    });
+
+    document.body.appendChild(flyImg);
+
+    // Force reflow before transitioning
+    flyImg.getBoundingClientRect();
+
+    // Fly to cart icon position
+    const targetX = cartRect.left + cartRect.width / 2 - imgSize / 2;
+    const targetY = cartRect.top + cartRect.height / 2 - imgSize / 2;
+
+    Object.assign(flyImg.style, {
+      left: `${targetX}px`,
+      top: `${targetY}px`,
+      width: "32px",
+      height: "32px",
+      opacity: "0",
+      transform: "scale(0.3)",
+    });
+
+    // Cleanup after animation
+    const onTransitionEnd = () => {
+      flyImg.removeEventListener("transitionend", onTransitionEnd);
+      flyImg.remove();
+      onComplete();
+    };
+    flyImg.addEventListener("transitionend", onTransitionEnd);
+
+    // Fallback in case transitionend doesn't fire
+    setTimeout(() => {
+      if (document.body.contains(flyImg)) {
+        flyImg.remove();
+        onComplete();
+      }
+    }, 800);
+  }, []);
+
+  const handleAddToCart = async (menu: Menu, eventTarget?: HTMLElement) => {
     try {
       // Fetch menu details to check if it has variations
       const response = await menuApi.getMenuById(menu.id.toString());
@@ -285,22 +371,25 @@ const MenuPage: React.FC = () => {
 
         // Check if menu has variation groups
         if (menuWithVariations.variation_groups && menuWithVariations.variation_groups.length > 0) {
-          // Show variation modal
+          // Show variation modal (no fly animation yet — will trigger on confirm)
           setSelectedMenuDetail(menuWithVariations);
           setSelectedVariations({});
           setModalQuantity(1);
           setShowVariationModal(true);
         } else {
-          // No variations, add directly to cart
-          addItem(menu, 1, []);
+          // No variations — trigger fly animation then add to cart
+          const imageUrl = menu.image_url || "";
+          const sourceRect = eventTarget?.getBoundingClientRect() ?? new DOMRect();
+          triggerFlyAnimation(imageUrl, sourceRect, () => {
+            addItem(menu, 1, []);
+            triggerBounce();
+          });
         }
       }
     } catch (error) {
       console.error("Error fetching menu details:", error);
-      // Fallback: add to cart without variations
+      // Fallback: add to cart without animation
       addItem(menu, 1, []);
-    } finally {
-      // setLoadingMenuDetail(false);
     }
   };
 
@@ -505,7 +594,10 @@ const MenuPage: React.FC = () => {
               return (
                 <div
                   key={menu.id}
-                  onClick={() => handleAddToCart(menu)}
+                  onClick={(e) => {
+                    const imgEl = (e.currentTarget as HTMLElement).querySelector('img');
+                    handleAddToCart(menu, imgEl ?? undefined);
+                  }}
                   className="group cursor-pointer rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
                 >
                   {/* Image Container */}
@@ -585,11 +677,14 @@ const MenuPage: React.FC = () => {
                 onClick={() => setShowCartModal(true)}
                 className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 transition hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 sm:gap-3 sm:px-4 sm:py-2"
               >
-                <div className="relative">
+                <div ref={cartIconRef} className="relative">
                   <svg className="h-5 w-5 text-gray-700 dark:text-gray-300 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white sm:-right-2 sm:-top-2 sm:h-5 sm:w-5 sm:text-xs">
+                  <span
+                    key={totalItems}
+                    className={`absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white sm:-right-2 sm:-top-2 sm:h-5 sm:w-5 sm:text-xs ${cartBounce ? 'cart-badge-pop' : ''}`}
+                  >
                     {totalItems}
                   </span>
                 </div>
