@@ -115,7 +115,7 @@ export interface TableTypeDetail {
   updated_at?: string;
 }
 
-export type TableStatus = "available" | "reserved" | "inactive";
+export type TableStatus = "available" | "inactive";
 
 export interface Table {
   id: number;
@@ -199,6 +199,25 @@ export interface User {
   name: string;
   role: "admin" | "super_admin" | "staff";
   created_at: string;
+}
+
+// Admin User Management Types
+export interface AdminUser {
+  id: number;
+  username: string;
+  full_name: string;
+  email: string;
+  role: "admin" | "staff";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminUserFormData {
+  username: string;
+  full_name: string;
+  email: string;
+  password?: string;
+  role: "admin" | "staff";
 }
 
 // Auth Types

@@ -1,4 +1,5 @@
 import React from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { formatCurrency, formatDate, formatTime } from "../../utils/formatters";
 import { Card } from "../ui/card";
 import Button from "../ui/button/Button";
@@ -386,23 +387,23 @@ export const ReservationDetailView: React.FC<ReservationDetailViewProps> = ({
                     {/* QR Code for Confirmed Reservations */}
                     {showQRCode && reservation.status === 'confirmed' && (
                         <Card>
-                            <div className="p-2 sm:p-6">
+                            <div className="p-4 sm:p-6">
                                 <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 text-center">
-                                    Reservation QR Code
+                                    Kode QR Reservasi
                                 </h2>
-                                <div className="flex flex-col items-center">
-                                    <div className="rounded-lg bg-white p-3 sm:p-4 shadow-sm">
-                                        <svg className="h-32 w-32 sm:h-40 sm:w-40" viewBox="0 0 100 100">
-                                            <rect width="100" height="100" fill="white" />
-                                            <text x="50" y="50" fontSize="6" textAnchor="middle" dominantBaseline="middle" fill="black">
-                                                {reservation.booking_code}
-                                            </text>
-                                        </svg>
+                                <div className="flex flex-col items-center gap-3">
+                                    <div className="rounded-xl bg-white p-3 sm:p-4 shadow-sm border border-gray-100">
+                                        <QRCodeSVG
+                                            value={reservation.booking_code}
+                                            size={160}
+                                            level="M"
+                                            includeMargin={false}
+                                        />
                                     </div>
-                                    <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-center text-gray-600 dark:text-gray-400">
-                                        Show this QR code when you arrive
+                                    <p className="text-xs sm:text-sm text-center text-gray-600 dark:text-gray-400">
+                                        Tunjukkan kode QR ini saat tiba di kafe
                                     </p>
-                                    <p className="mt-1 text-[10px] sm:text-xs font-mono text-gray-500 dark:text-gray-500">
+                                    <p className="text-[10px] sm:text-xs font-mono font-semibold tracking-wider text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
                                         {reservation.booking_code}
                                     </p>
                                 </div>

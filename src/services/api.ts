@@ -19,6 +19,8 @@ import {
   DashboardStats,
   ReservationStatus,
   TableTypeDetail,
+  AdminUser,
+  AdminUserFormData,
 } from "../types";
 
 // Base API URL - Update this with your actual backend URL
@@ -50,9 +52,17 @@ const createHeaders = (includeAuth = false): HeadersInit => {
 async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: "An error occurred" }));
+    // Extract field-level validation errors from Laravel 422 responses
+    let errorMessage = error.message || `HTTP error! status: ${response.status}`;
+    if (error.errors && typeof error.errors === "object") {
+      const fieldErrors = Object.values(error.errors as Record<string, string[]>)
+        .flat()
+        .join(" ");
+      if (fieldErrors) errorMessage = fieldErrors;
+    }
     return {
       success: false,
-      error: error.message || `HTTP error! status: ${response.status}`,
+      error: errorMessage,
     };
   }
 
@@ -630,6 +640,57 @@ export const dashboardApi = {
   },
 };
 
+// ============================================
+// USER MANAGEMENT API (Admin only)
+// ============================================
+
+export const userManagementApi = {
+  // Get all users (excluding self - handled by BE)
+  getAll: async (): Promise<ApiResponse<AdminUser[]>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<AdminUser[]>(response);
+  },
+
+  // Get user by ID
+  getById: async (id: number): Promise<ApiResponse<AdminUser>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<AdminUser>(response);
+  },
+
+  // Create new user
+  create: async (data: AdminUserFormData): Promise<ApiResponse<AdminUser>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<AdminUser>(response);
+  },
+
+  // Update user
+  update: async (id: number, data: AdminUserFormData): Promise<ApiResponse<AdminUser>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+      method: "PUT",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<AdminUser>(response);
+  },
+
+  // Delete user
+  delete: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
+    });
+    return handleResponse<void>(response);
+  },
+};
+
 // Export all APIs
 export default {
   auth: authApi,
@@ -638,4 +699,5 @@ export default {
   table: tableApi,
   reservation: reservationApi,
   dashboard: dashboardApi,
+  userManagement: userManagementApi,
 };

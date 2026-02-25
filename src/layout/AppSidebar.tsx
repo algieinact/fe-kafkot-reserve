@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router";
+import { QrCode } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -7,7 +8,8 @@ import {
   CalenderIcon as CalendarIcon,
   TaskIcon as ClipboardIcon,
   ListIcon as MenuIcon,
-  HorizontaLDots
+  HorizontaLDots,
+  UserIcon,
 } from "../icons";
 
 interface NavItem {
@@ -68,6 +70,16 @@ const adminMenuItems: NavItem[] = [
     icon: <HorizontaLDots />,
     path: "/dashboard/variations",
   },
+  {
+    name: "Kelola Pengguna",
+    icon: <UserIcon />,
+    path: "/dashboard/users",
+  },
+  {
+    name: "Scan Reservasi",
+    icon: <QrCode className="w-5 h-5" />,
+    path: "/dashboard/scan",
+  },
 ];
 
 // Menu untuk staff (hanya Kelola Reservasi)
@@ -76,6 +88,11 @@ const staffMenuItems: NavItem[] = [
     name: "Kelola Reservasi",
     icon: <CalendarIcon />,
     path: "/dashboard/reservations",
+  },
+  {
+    name: "Scan Reservasi",
+    icon: <QrCode className="w-5 h-5" />,
+    path: "/dashboard/scan",
   },
 ];
 

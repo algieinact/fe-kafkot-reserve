@@ -267,11 +267,11 @@ export default function ManageTable() {
             label: "Status",
             sortable: true,
             render: (val) => (
-                <span className={`px-2.5 py-1 text-xs rounded-full ${val === 'available' ? 'bg-green-100 text-green-800' :
-                    val === 'reserved' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
+                <span className={`px-2.5 py-1 text-xs rounded-full ${val === 'available'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                     }`}>
-                    {val === 'available' ? 'Tersedia' : val === 'reserved' ? 'Direservasi' : 'Tidak Aktif'}
+                    {val === 'available' ? 'Tersedia' : 'Tidak Aktif'}
                 </span>
             )
         },
@@ -314,7 +314,7 @@ export default function ManageTable() {
     // Statistics
     const totalTables = tables.length;
     const availableTables = tables.filter(t => t.status === "available").length;
-    const reservedTables = tables.filter(t => t.status !== "available").length;
+    const inactiveTables = tables.filter(t => t.status === "inactive").length;
 
     return (
         <>
@@ -332,8 +332,8 @@ export default function ManageTable() {
                     <div className="text-2xl font-bold text-green-600 dark:text-green-400">{availableTables}</div>
                 </div>
                 <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
-                    <div className="text-gray-500 text-sm">Terisi / Non-Aktif</div>
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">{reservedTables}</div>
+                    <div className="text-gray-500 text-sm">Tidak Aktif</div>
+                    <div className="text-2xl font-bold text-gray-500 dark:text-gray-400">{inactiveTables}</div>
                 </div>
             </div>
 
@@ -456,7 +456,6 @@ export default function ManageTable() {
                                 className="h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
                             >
                                 <option value="available">Tersedia</option>
-                                <option value="reserved">Direservasi</option>
                                 <option value="inactive">Tidak Aktif</option>
                             </select>
                         </div>

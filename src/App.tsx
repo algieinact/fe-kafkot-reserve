@@ -24,6 +24,8 @@ import ManageReservation from "./pages/Admin/ManageReservation";
 import ManageBanner from "./pages/Admin/ManageBanner";
 import ManageVariations from "./pages/Admin/ManageVariations";
 import AdminReservationDetail from "./pages/Admin/AdminReservationDetail";
+import ManageUser from "./pages/Admin/ManageUser";
+import ScanReservation from "./pages/Admin/ScanReservation";
 
 export default function App() {
   return (
@@ -95,10 +97,19 @@ export default function App() {
                   </RoleBasedRoute>
                 }
               />
+              <Route
+                path="/dashboard/users"
+                element={
+                  <RoleBasedRoute allowedRoles={["admin"]}>
+                    <ManageUser />
+                  </RoleBasedRoute>
+                }
+              />
 
               {/* Accessible by all authenticated users (admin, super_admin, staff) */}
               <Route path="/dashboard/reservations" element={<ManageReservation />} />
               <Route path="/dashboard/reservations/:id" element={<AdminReservationDetail />} />
+              <Route path="/dashboard/scan" element={<ScanReservation />} />
             </Route>
 
             {/* Fallback Route */}
