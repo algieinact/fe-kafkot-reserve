@@ -21,6 +21,8 @@ import {
   TableTypeDetail,
   AdminUser,
   AdminUserFormData,
+  BankAccount,
+  BankAccountFormData,
 } from "../types";
 
 // Base API URL - Update this with your actual backend URL
@@ -691,6 +693,57 @@ export const userManagementApi = {
   },
 };
 
+export const bankAccountApi = {
+  getAll: async (): Promise<ApiResponse<BankAccount[]>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/bank-accounts`, {
+      headers: createHeaders(true),
+    });
+    return handleResponse<BankAccount[]>(response);
+  },
+
+  create: async (data: BankAccountFormData): Promise<ApiResponse<BankAccount>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/bank-accounts`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<BankAccount>(response);
+  },
+
+  update: async (id: number, data: BankAccountFormData): Promise<ApiResponse<BankAccount>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/bank-accounts/${id}`, {
+      method: "PUT",
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<BankAccount>(response);
+  },
+
+  delete: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/bank-accounts/${id}`, {
+      method: "DELETE",
+      headers: createHeaders(true),
+    });
+    return handleResponse<void>(response);
+  },
+
+  toggleActive: async (id: number): Promise<ApiResponse<BankAccount>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/bank-accounts/${id}/toggle-active`, {
+      method: "PATCH",
+      headers: createHeaders(true),
+    });
+    return handleResponse<BankAccount>(response);
+  },
+
+  setPrimary: async (id: number): Promise<ApiResponse<BankAccount>> => {
+    const response = await fetch(`${API_BASE_URL}/admin/bank-accounts/${id}/set-primary`, {
+      method: "PATCH",
+      headers: createHeaders(true),
+    });
+    return handleResponse<BankAccount>(response);
+  },
+};
+
 // Export all APIs
 export default {
   auth: authApi,
@@ -700,4 +753,5 @@ export default {
   reservation: reservationApi,
   dashboard: dashboardApi,
   userManagement: userManagementApi,
+  bankAccount: bankAccountApi,
 };

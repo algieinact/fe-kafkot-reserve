@@ -26,6 +26,7 @@ import ManageVariations from "./pages/Admin/ManageVariations";
 import AdminReservationDetail from "./pages/Admin/AdminReservationDetail";
 import ManageUser from "./pages/Admin/ManageUser";
 import ScanReservation from "./pages/Admin/ScanReservation";
+import ManageBankAccount from "./pages/Admin/ManageBankAccount";
 
 export default function App() {
   return (
@@ -102,6 +103,14 @@ export default function App() {
                 element={
                   <RoleBasedRoute allowedRoles={["admin"]}>
                     <ManageUser />
+                  </RoleBasedRoute>
+                }
+              />
+              <Route
+                path="/dashboard/bank-accounts"
+                element={
+                  <RoleBasedRoute allowedRoles={["admin"]}>
+                    <ManageBankAccount />
                   </RoleBasedRoute>
                 }
               />

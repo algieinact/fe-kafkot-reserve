@@ -336,3 +336,24 @@ export interface ReservationChartData {
   count: number;
   revenue: number;
 }
+
+export interface BankAccount {
+  id: number;
+  bank_name: string;
+  account_number: string;
+  account_holder_name: string;
+  is_active: boolean;
+  is_primary: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BankAccountFormData {
+  bank_name: string;
+  account_number: string;
+  account_holder_name: string;
+  is_active: boolean;
+  is_primary: boolean;
+  notes: string;
+}

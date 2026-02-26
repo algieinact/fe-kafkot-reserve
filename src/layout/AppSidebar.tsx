@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router";
-import { QrCode } from "lucide-react";
+import { QrCode, CreditCard } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -74,6 +74,11 @@ const adminMenuItems: NavItem[] = [
     name: "Kelola Pengguna",
     icon: <UserIcon />,
     path: "/dashboard/users",
+  },
+  {
+    name: "Kelola Rekening",
+    icon: <CreditCard className="w-5 h-5" />,
+    path: "/dashboard/bank-accounts",
   },
   {
     name: "Scan Reservasi",
